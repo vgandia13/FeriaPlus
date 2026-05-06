@@ -128,7 +128,7 @@ public class DataSeeder implements CommandLineRunner {
             // Guardar todos los eventos de golpe
             eventoRepository.saveAll(Arrays.asList(e1, e2, e3, e4, e5));
 
-            System.out.println("✅ Base de datos poblada con éxito: 1 Organizador, 5 Ubicaciones y 5 Eventos de prueba.");
+            System.out.println("Base de datos poblada con éxito: 1 Organizador, 1 admin, 5 Ubicaciones y 5 Eventos de prueba.");
         }
     }
 }

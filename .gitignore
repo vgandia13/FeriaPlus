@@ -11,3 +11,5 @@ desktop.ini
 # --- Logs y Temporales ---
 *.log
 temp/
+
+node_modules/

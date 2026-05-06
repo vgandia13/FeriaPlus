@@ -1,0 +1,27 @@
+{
+  "name": "proyecto-intermodular-2-daw",
+  "version": "1.0.0",
+  "description": "**Feria+** es una plataforma integral para la gestión y participación en eventos feriales, desarrollada como Proyecto Fin de Grado para el Ciclo Formativo de Grado Superior en Desarrollo de Aplicaciones Web (DAW). La aplicación permite a organizadores, expositores y visitantes interactuar en un ecosistema digital centralizado para la promoción y asistencia a eventos.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "cd backend && ./mvnw spring-boot:run",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vgandia13/Proyecto-Intermodular-2-DAW.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/vgandia13/Proyecto-Intermodular-2-DAW/issues"
+  },
+  "homepage": "https://github.com/vgandia13/Proyecto-Intermodular-2-DAW#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
