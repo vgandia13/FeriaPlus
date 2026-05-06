@@ -17,6 +17,8 @@ import { EventoDTO } from "@/types/EventoDTO";
 import { useEffect, useState } from "react";
 import { EventoService } from "@/services/eventoService";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { Button } from "./ui/button";
 
 const CarruselEventos = () => {
   const [eventos, setEventos] = useState<EventoDTO[]>([]);
@@ -26,7 +28,7 @@ const CarruselEventos = () => {
       try {
         const response = await EventoService.getAll();
 
-        setEventos(response.slice(0, 5));
+        setEventos(response.content.slice(0, 5));
       } catch (error) {
         console.error("Error de red al cargar eventos destacados", error);
         toast.error(
@@ -102,9 +104,9 @@ const CarruselEventos = () => {
                     <span className="text-sm font-semibold">
                       {new Date(evento.fecha).toLocaleDateString()}
                     </span>
-                    <button className="text-primary text-sm font-bold hover:underline">
-                      Ver más
-                    </button>
+                    <Button variant={'link'} asChild className="text-primary text-sm font-bold hover:underline">
+                      <Link to={`/events/${evento.id}`}> Ver más</Link>
+                    </Button>
                   </CardFooter>
                 </Card>
               </div>

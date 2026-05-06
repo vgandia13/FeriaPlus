@@ -21,6 +21,9 @@ const Navbar = () => {
         <Link to="/" className="text-xl font-bold tracking-tight">
           Feria+
         </Link>
+        <Link to="/" className="text-xl font-bold tracking-tight">
+          Home
+        </Link>
         <Link to="/events" className="text-xl font-bold tracking-tight">
           Eventos
         </Link>

@@ -8,6 +8,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { AuthService } from "@/services/authService";
 import { UsuarioRegistro } from "@/types/UsuarioRegistro";
@@ -32,7 +39,7 @@ const RegisterPage = () => {
     setIsLoading(true);
 
     if (password !== confirmPassword) {
-      toast.error("Las contraseñas no coinciden");
+      toast.error("Las contraseñas no coinciden");
       setIsLoading(false);
       return;
     }
@@ -72,7 +79,7 @@ const RegisterPage = () => {
             Crea tu cuenta para acceder a todas las funcionalidades de Feria+
           </CardDescription>
         </CardHeader>
-        <form>
+        <form onSubmit={handleRegister}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Nombre de Usuario</label>
@@ -142,24 +149,24 @@ const RegisterPage = () => {
                   )}
                 </button>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Rol</label>
-                <select
-                  value={rol}
-                  onChange={(e) => setRol(e.target.value)}
-                  className="w-full border-2 py-2 px-2 rounded-md"
-                >
-                  <option value="ROLE_VISITANTE">Visitante</option>
-                  <option value="ROLE_EXPOSITOR">Expositor</option>
-                  <option value="ROLE_ORGANIZADOR">Organizador</option>
-                </select>
-              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Rol</label>
+              <Select onValueChange={setRol}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona un rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ROLE_VISITANTE">Visitante</SelectItem>
+                  <SelectItem value="ROLE_EXPOSITOR">Expositor</SelectItem>
+                  <SelectItem value="ROLE_ORGANIZADOR">Organizador</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <Button
               type="submit"
               className="w-full"
-              onClick={handleRegister}
               disabled={isLoading}
             >
               {isLoading ? "Registrando..." : "Registrarse"}
