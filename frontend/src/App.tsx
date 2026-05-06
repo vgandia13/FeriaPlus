@@ -15,9 +15,9 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/events" element={<EventsPage />} />
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/events" element={<EventsPage />} />
             <Route path="/events/:id" element={<EventPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
