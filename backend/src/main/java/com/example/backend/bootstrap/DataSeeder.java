@@ -43,8 +43,15 @@ public class DataSeeder implements CommandLineRunner {
             organizador.setEmail("admin@feriaplus.com");
             organizador.setPassword(passwordEncoder.encode("123456"));
             organizador.setRol(Rol.ROLE_ORGANIZADOR);
+
+            Usuario admin = new Usuario();
+            admin.setNombre("Victor");
+            admin.setEmail("admin@gmail.com");
+            admin.setPassword(passwordEncoder.encode("123456"));
+            admin.setRol(Rol.ROLE_ADMIN);
             
             usuarioRepository.save(organizador);
+            usuarioRepository.save(admin);
 
             // 2. Crear Ubicaciones para los eventos
             Ubicacion u1 = new Ubicacion();
