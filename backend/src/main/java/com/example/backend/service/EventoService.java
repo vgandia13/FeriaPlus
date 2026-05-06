@@ -3,6 +3,8 @@ package com.example.backend.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.DTO.EventoDTO;
@@ -25,10 +27,14 @@ public class EventoService {
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
 
-    public List<EventoDTO> listarTodos() {
-        return eventoRepository.findAll().stream()
-                .map(this::mapToDTO)
-                .toList();
+    public Page<EventoDTO> obtenerTodos(String nombre, Pageable pageable) {
+        Page<Evento> eventos;
+        if (nombre != null && !nombre.isBlank()) {
+            eventos = eventoRepository.findByNombreContainingIgnoreCase(nombre, pageable);
+        } else {
+            eventos = eventoRepository.findAll(pageable);
+        }
+        return eventos.map(this::mapToDTO);
     }
 
     public List<EventoDTO> listarPorCategoria(Long categoriaId) {

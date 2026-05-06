@@ -20,7 +20,10 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.CascadeType;
 import java.util.List;
 
+import jakarta.persistence.Table;
+
 @Entity
+@Table(name = "eventos")
 @Getter @Setter
 @AllArgsConstructor @NoArgsConstructor
 public class Evento {

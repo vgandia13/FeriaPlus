@@ -48,3 +48,31 @@ El proyecto se basa en una arquitectura de desacoplamiento entre el cliente y el
 │   ├── src/pages       # Vistas principales de la aplicación
 │   ├── src/services    # Lógica de comunicación con el backend
 │   └── package.json    # Scripts y dependencias de NPM
+```
+
+## Instrucciones de instalación
+
+## Requisitos
+
+* Java 17 o superior
+* Maven
+* Node.js 18+
+* MySQL/MariaDB
+
+## Instalación Backend
+
+1. Navega a la carpeta `/backend`.
+2. Configura las propiedades de conexión a la base de datos en `src/main/resources/application.properties`.
+3. Ejecuta `./mvnw spring-boot:run`.
+
+## Instalación Frontend
+
+1. Navega a la carpeta `/frontend`.
+2. Ejecuta `npm install`.
+3. Ejecuta `npm run dev`.
+
+---
+
+## Anexos
+
+*Se adjuntan capturas de pantalla de la aplicación funcionando en el informe final.*
