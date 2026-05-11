@@ -35,7 +35,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Solo insertamos datos si la tabla de eventos está vacía
-        if (eventoRepository.count() == 0) {
+        if (eventoRepository.count() == 0 && usuarioRepository.count() == 0) {
             
             // 1. Crear un usuario organizador (Requisito por la relación @ManyToOne)
             Usuario organizador = new Usuario();
@@ -129,6 +129,8 @@ public class DataSeeder implements CommandLineRunner {
             eventoRepository.saveAll(Arrays.asList(e1, e2, e3, e4, e5));
 
             System.out.println("Base de datos poblada con éxito: 1 Organizador, 1 admin, 5 Ubicaciones y 5 Eventos de prueba.");
+        }else{
+            System.out.println("Base de datos ya estaba poblada.");
         }
     }
 }
