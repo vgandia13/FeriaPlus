@@ -99,7 +99,7 @@ public class EventoService {
         if(dto.getFecha() != null){
             evento.setFecha(LocalDate.parse(dto.getFecha()));
         }
-        // evento.setUbicacion(dto.getUbicacion()); // Requiere lookup de DB o cambios en DTO
+        evento.setUbicacion(dto.getUbicacion()); // Requiere lookup de DB o cambios en DTO
         evento.setImagenUrl(dto.getImagenUrl());
 
         if(dto.getCategoriaId() != null){
