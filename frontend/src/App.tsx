@@ -7,6 +7,8 @@ import RegisterPage from "./pages/RegisterPage";
 import EventsPage from "./pages/EventsPage";
 import EventPage from "./pages/EventPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import AdminPage from "./pages/AdminPage";
+import { Rol } from "./types/Rol";
 
 function App() {
   return (
@@ -23,6 +25,10 @@ function App() {
           </Route>
 
           {/*TODO: rutas para organizadores y admin */}
+          {/* Ruta de admin */}
+          <Route element={<ProtectedRoute allowedRoles={[Rol.ROLE_ADMIN]} />}>
+            <Route path="/admin" element={<AdminPage />} />
+          </Route>
 
           <Route path="*" element={<NotFoundPage />} />
         </Route>
