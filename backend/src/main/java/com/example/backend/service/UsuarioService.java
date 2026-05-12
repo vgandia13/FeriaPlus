@@ -1,5 +1,7 @@
 package com.example.backend.service;
 
+import java.util.List;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.backend.repository.UsuarioRepository;
@@ -27,6 +29,11 @@ public class UsuarioService {
         return mapToResponseDTO(savedUsuario);
     }
 
+    public List<UsuarioResponseDTO> listarUsuarios() {
+        List<Usuario> usuarios = usuarioRepository.findAll();
+        return usuarios.stream().map(this::mapToResponseDTO).toList();
+    }
+
     public UsuarioResponseDTO obtenerPerfilPorId(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
@@ -50,6 +57,10 @@ public class UsuarioService {
 
         Usuario updatedUsuario = usuarioRepository.save(usuario);
         return mapToResponseDTO(updatedUsuario);
+    }
+
+    public void eliminarUsuario(Long id) {
+        usuarioRepository.deleteById(id);
     }
 
     private UsuarioResponseDTO mapToResponseDTO(Usuario usuario) {

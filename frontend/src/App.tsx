@@ -17,9 +17,13 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/events" element={<EventsPage />} />
+
           <Route element={<ProtectedRoute />}>
             <Route path="/events/:id" element={<EventPage />} />
           </Route>
+
+          {/*TODO: rutas para organizadores y admin */}
+
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
