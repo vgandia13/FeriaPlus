@@ -16,6 +16,7 @@ const defaultIcon = L.icon({
   shadowUrl: iconShadow,
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
+  iconSize: [25, 41],
 });
 L.Marker.prototype.options.icon = defaultIcon;
 
@@ -31,7 +32,7 @@ const EventPage = () => {
   const darkIcon =  L.icon({
     iconUrl: '/dark-map-icon.png',
     shadowUrl: iconShadow,
-    iconSize: [35, 35],
+    iconSize: [40, 41],
     iconAnchor: [17, 41],
     popupAnchor: [1, -34],
   });
@@ -102,7 +103,7 @@ const EventPage = () => {
             <p className="font-semibold">Ubicación en el mapa:</p>
             <button
               onClick={centrarMapa}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+              className="bg-blue-600 dark:bg-blue-900 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
             >
               Volver al punto central
             </button>
@@ -121,7 +122,7 @@ const EventPage = () => {
               />
 
               <Marker position={[lat, lng]} icon={ theme === 'light' ? defaultIcon : darkIcon }>
-                <Popup>
+                <Popup className="bg-background">
                   <div className="bg-primary text-primary-foreground p-2 rounded-md -m-1">
                     {event.ubicacion.nombre}
                   </div>
