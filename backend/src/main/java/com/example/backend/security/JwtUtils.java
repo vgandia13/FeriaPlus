@@ -6,14 +6,17 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 @Component
 public class JwtUtils {
 
-    private final String JWT_SECRET = "tu_clave_secreta_super_larga_y_segura_para_feria_plus";
     private final int JWT_EXPIRATION_MS = 86400000; // 24 horas
+    @Value("${jwt.secret}")
+    private String JWT_SECRET;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(JWT_SECRET.getBytes());

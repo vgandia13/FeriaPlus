@@ -25,8 +25,8 @@ const EventPage = () => {
   const { theme } = useTheme();
   const [event, setEvent] = useState<EventoDTO | null>(null);
   const [loading, setLoading] = useState(false);
-  const lat = event?.ubicacion.latitud;
-  const lng = event?.ubicacion.longitud;
+  const lat = event?.ubicacion?.latitud;
+  const lng = event?.ubicacion?.longitud;
   const posicionValida = lat !== undefined && lng !== undefined;
 
   const darkIcon =  L.icon({
