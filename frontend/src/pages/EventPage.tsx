@@ -28,6 +28,14 @@ const EventPage = () => {
   const lng = event?.ubicacion.longitud;
   const posicionValida = lat !== undefined && lng !== undefined;
 
+  const darkIcon =  L.icon({
+    iconUrl: '/dark-map-icon.png',
+    shadowUrl: iconShadow,
+    iconSize: [35, 35],
+    iconAnchor: [17, 41],
+    popupAnchor: [1, -34],
+  });
+
   const mapRef = useRef<L.Map | null>(null);
 
   const tileUrl = theme === 'dark'
@@ -112,7 +120,7 @@ const EventPage = () => {
                 url={tileUrl}
               />
 
-              <Marker position={[lat, lng]}>
+              <Marker position={[lat, lng]} icon={ theme === 'light' ? defaultIcon : darkIcon }>
                 <Popup>
                   <div className="bg-primary text-primary-foreground p-2 rounded-md -m-1">
                     {event.ubicacion.nombre}
