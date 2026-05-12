@@ -32,7 +32,7 @@ const Navbar = () => {
             Admin
           </Link>
         )}
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center gap-x-6">
           <ThemeToggle />
 
           <div className="h-6 w-px bg-primary-foreground/20 hidden sm:block"></div>
