@@ -19,7 +19,9 @@ public class EventoDTO {
     @Size(max = 500, message = "La descripción no puede exceder los 500 caracteres")
     private String descripcion;
     
+    @NotBlank(message = "La fecha es obligatoria")
     private String fecha; 
+    @NotNull(message = "La ubicación es obligatoria")
     private UbicacionDTO ubicacion;
     private Double latitud;
     private Double longitud;
