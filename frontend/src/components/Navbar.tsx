@@ -21,12 +21,17 @@ const Navbar = () => {
         <Link to="/" className="text-xl font-bold tracking-tight">
           Feria+
         </Link>
-        <Link to="/" className="text-xl font-bold tracking-tight">
+        <Link to="/" className="text-xl font-bold tracking-tight hover:underline">
           Home
         </Link>
-        <Link to="/events" className="text-xl font-bold tracking-tight">
+        <Link to="/events" className="text-xl font-bold tracking-tight hover:underline">
           Eventos
         </Link>
+        { usuario?.rol === "ROLE_ADMIN" && (
+          <Link to="/admin" className="text-xl font-bold tracking-tight hover:underline">
+            Admin
+          </Link>
+        )}
         <div className="flex items-center space-x-6">
           <ThemeToggle />
 
