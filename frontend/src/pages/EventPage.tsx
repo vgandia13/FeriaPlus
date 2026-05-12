@@ -24,8 +24,8 @@ const EventPage = () => {
   const { theme } = useTheme();
   const [event, setEvent] = useState<EventoDTO | null>(null);
   const [loading, setLoading] = useState(false);
-  const lat = event?.latitud;
-  const lng = event?.longitud;
+  const lat = event?.ubicacion.latitud;
+  const lng = event?.ubicacion.longitud;
   const posicionValida = lat !== undefined && lng !== undefined;
 
   const mapRef = useRef<L.Map | null>(null);
@@ -82,7 +82,7 @@ const EventPage = () => {
       />
       <p className="mt-4">{event.descripcion}</p>
       <p className="mt-2 font-semibold">
-        Ubicación: <Badge>{event.ubicacion}</Badge>
+        Ubicación: <Badge>{event.ubicacion.nombre}</Badge>
       </p>
       <p className="mt-2">
         Fecha: {new Date(event.fecha).toLocaleDateString()}
@@ -115,7 +115,7 @@ const EventPage = () => {
               <Marker position={[lat, lng]}>
                 <Popup>
                   <div className="bg-primary text-primary-foreground p-2 rounded-md -m-1">
-                    {event.ubicacion}
+                    {event.ubicacion.nombre}
                   </div>
                 </Popup>
               </Marker>

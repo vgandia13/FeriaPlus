@@ -136,7 +136,7 @@ const EventsPage = () => {
                   </p>
                 </CardContent>
                 <CardFooter className="flex flex-col items-start gap-2 text-sm text-muted-foreground pt-4 border-t">
-                  <p>📍 {event.ubicacion}</p>
+                  <p>📍 {event.ubicacion.nombre}</p>
                   <p>📅 {new Date(event.fecha).toLocaleDateString()}</p>
                   <Link className="text-primary hover:underline" to={`/events/${event.id}`}>Ver más</Link>
                 </CardFooter>
@@ -177,7 +177,7 @@ const EventsPage = () => {
           />
           <Button variant={"ghost"}>
             <ChevronsRight
-            onClick={() => setPage(totalPages)}
+            onClick={() => setPage(totalPages - 1)}
               className={
                 page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"
               }
