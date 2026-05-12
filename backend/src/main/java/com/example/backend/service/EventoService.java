@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.example.backend.mapper.UbicacionMapper;
 import com.example.backend.DTO.EventoDTO;
 import com.example.backend.exception.EventoNoEncontradoException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
@@ -26,6 +27,7 @@ public class EventoService {
     private final EventoRepository eventoRepository;
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
+    private final UbicacionMapper ubicacionMapper;
 
     public Page<EventoDTO> obtenerTodos(String nombre, Pageable pageable) {
         Page<Evento> eventos;
@@ -72,7 +74,7 @@ public class EventoService {
         dto.setDescripcion(evento.getDescripcion());
         dto.setFecha(evento.getFecha() != null ? evento.getFecha().toString() : null);
         if (evento.getUbicacion() != null) {
-            dto.setUbicacion(evento.getUbicacion());
+            dto.setUbicacion(ubicacionMapper.ubicacionToUbicacionDTO(evento.getUbicacion()));
             dto.setLatitud(evento.getUbicacion().getLatitud());
             dto.setLongitud(evento.getUbicacion().getLongitud());
         } else {
@@ -99,7 +101,7 @@ public class EventoService {
         if(dto.getFecha() != null){
             evento.setFecha(LocalDate.parse(dto.getFecha()));
         }
-        evento.setUbicacion(dto.getUbicacion()); // Requiere lookup de DB o cambios en DTO
+        evento.setUbicacion(dto.getUbicacion() != null ? ubicacionMapper.ubicacionDTOToUbicacion(dto.getUbicacion()) : null);
         evento.setImagenUrl(dto.getImagenUrl());
 
         if(dto.getCategoriaId() != null){

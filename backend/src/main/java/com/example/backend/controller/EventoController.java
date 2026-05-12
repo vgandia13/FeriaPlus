@@ -39,8 +39,8 @@ public class EventoController {
     
     @PostMapping
     @PreAuthorize("hasRole('ORGANIZADOR')")
-    public EventoDTO crear(@RequestBody EventoDTO eventoDTO){
-        return eventoService.guardar(eventoDTO);
+    public ResponseEntity<EventoDTO> crear(@RequestBody EventoDTO eventoDTO){
+        return ResponseEntity.ok(eventoService.guardar(eventoDTO));
     }
 
     @PostMapping("/{id}/asistir")
