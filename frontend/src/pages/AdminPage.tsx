@@ -20,9 +20,20 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { adminService } from "@/services/adminService";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { UsuarioResponseDTO } from "@/types/UsuarioResponseDTO";
 import { Button } from "@/components/ui/button";
+import {
+  Pagination,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+  InputGroup,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 const ROL_LABELS: Record<string, string> = {
   ROLE_ADMIN: "Admin",
@@ -43,43 +54,97 @@ const formatDate = (ISOdate: string) =>
 const AdminPage = () => {
   const [users, setUsers] = useState<UsuarioResponseDTO[]>([]);
   const [loading, setLoading] = useState(false);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [searchTerms, setSearchTerms] = useState("");
+  const [debouncedSearchTerms, setDebouncedSearchTerms] = useState("");
+  const [page, setPage] = useState(0);
 
-  const loadUsers = useCallback(async () => {
+  const loadUsers = async (nombre: string, p: number) => {
     setLoading(true);
     try {
-      const response = await adminService.getAllUsers();
-      setUsers(response);
+      const data = await adminService.getAllUsers({ nombre, page: p, size: 9 });
+      return data;
     } catch (error) {
-      console.error(error);
+      console.error("Error al cargar usuarios", error);
       toast.error("No se pudieron cargar los usuarios.");
+      return { content: [], totalPages: 0, totalElements: 0 };
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
+
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerms(searchTerms);
+      setPage(0);
+    }, 500);
+
+    return () => clearTimeout(timerId);
+  }, [searchTerms]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      const data = await loadUsers(debouncedSearchTerms, page);
+      if (isMounted) {
+        setUsers(data.content);
+        setTotalPages(data.totalPages);
+        setTotalElements(data.totalElements);
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [debouncedSearchTerms, page]);
+
+  const handleSearch = () => {
+    setDebouncedSearchTerms(searchTerms);
+    setPage(0);
+  };
 
   const handleDelete = async (id: string) => {
     try {
       await adminService.deleteUser(id);
       toast.success("Usuario eliminado correctamente.");
-      await loadUsers();
+      setPage(0);
+      await loadUsers(debouncedSearchTerms, page);
     } catch (error) {
       console.error(error);
       toast.error("No se pudo eliminar el usuario.");
     }
   };
 
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-2">Panel de Administración</h1>
-      <p className="text-muted-foreground mb-6">
+      <p className="text-muted-foreground mb-4">
         Gestiona los usuarios registrados en la plataforma.
+      </p>
+      <p className="text-muted-foreground mb-6">
+        Usuarios totales: {totalElements}
       </p>
 
       <div className="overflow-x-auto rounded-lg border">
+        {totalElements > 0 && (
+          <nav className="py-2 px-8 m-2">
+            <InputGroup>
+              <InputGroupInput
+                placeholder="Buscar usuarios"
+                value={searchTerms}
+                onChange={(e) => setSearchTerms(e.target.value)}
+              />
+              <InputGroupButton asChild>
+                <Button className="rounded-2xl p-3" onClick={handleSearch}>
+                  Buscar
+                </Button>
+              </InputGroupButton>
+            </InputGroup>
+          </nav>
+        )}
         <Table>
           <TableHeader>
             <TableRow>
@@ -153,6 +218,43 @@ const AdminPage = () => {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="flex justify-end mt-8">
+        <Pagination className="flex items-center align-middle justify-center">
+          <Button variant={"ghost"} onClick={() => setPage(0)}>
+            <ChevronsLeft
+              className={
+                page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"
+              }
+            />
+          </Button>
+          <PaginationPrevious
+            className={
+              page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"
+            }
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+          />
+          <span className="mx-4 flex items-center text-sm font-medium">
+            Página {page + 1} de {totalPages || 1}
+          </span>
+          <PaginationNext
+            className={
+              page >= totalPages - 1
+                ? "pointer-events-none opacity-50"
+                : "cursor-pointer"
+            }
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+          />
+          <Button variant={"ghost"}>
+            <ChevronsRight
+              onClick={() => setPage(totalPages - 1)}
+              className={
+                page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"
+              }
+            />
+          </Button>
+        </Pagination>
       </div>
     </div>
   );

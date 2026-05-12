@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,9 +30,14 @@ public class UsuarioService {
         return mapToResponseDTO(savedUsuario);
     }
 
-    public List<UsuarioResponseDTO> listarUsuarios() {
-        List<Usuario> usuarios = usuarioRepository.findAll();
-        return usuarios.stream().map(this::mapToResponseDTO).toList();
+    public Page<UsuarioResponseDTO> listarUsuarios(String nombre, Pageable pageable) {
+        Page<Usuario> usuarios;
+        if(nombre != null && !nombre.isBlank()) {
+            usuarios = usuarioRepository.findByNombreContainingIgnoreCase(nombre, pageable);
+        } else {
+            usuarios = usuarioRepository.findAll(pageable);
+        }
+        return usuarios.map(this::mapToResponseDTO);
     }
 
     public UsuarioResponseDTO obtenerPerfilPorId(Long id) {
