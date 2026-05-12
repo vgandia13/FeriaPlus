@@ -39,10 +39,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7); // Quitamos "Bearer " para quedarnos solo con el código
-            if(jwtUtils.validateToken(token)) {
-                email = jwtUtils.getEmailFromToken(token);
-            }else{
-                logger.warn("Token inválido: " + token);
+            try {
+                if(jwtUtils.validateToken(token)) {
+                    email = jwtUtils.getEmailFromToken(token);
+                } else {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
+                    return;
+                }
+            } catch (Exception e) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error al validar el token");
+                return;
             }
         }
 

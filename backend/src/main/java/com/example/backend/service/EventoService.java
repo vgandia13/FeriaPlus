@@ -72,7 +72,7 @@ public class EventoService {
         dto.setDescripcion(evento.getDescripcion());
         dto.setFecha(evento.getFecha() != null ? evento.getFecha().toString() : null);
         if (evento.getUbicacion() != null) {
-            dto.setUbicacion(evento.getUbicacion().getNombre());
+            dto.setUbicacion(evento.getUbicacion());
             dto.setLatitud(evento.getUbicacion().getLatitud());
             dto.setLongitud(evento.getUbicacion().getLongitud());
         } else {
