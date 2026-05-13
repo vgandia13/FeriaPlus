@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -35,24 +34,23 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequestDTO loginRequest) {
-       Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(loginRequest.getEmail() , loginRequest.getPassword())
-       );
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
-       String token = jwtUtils.generateToken(authentication);
+        String token = jwtUtils.generateToken(authentication);
 
-       UsuarioResponseDTO usuario = usuarioService.obtenerUsuarioPorEmail(loginRequest.getEmail());
+        UsuarioResponseDTO usuario = usuarioService.obtenerUsuarioPorEmail(loginRequest.getEmail());
 
-       Map<String, Object> usuarioMap = new HashMap<>();
-       usuarioMap.put("name", usuario.getNombre());
-       usuarioMap.put("email", usuario.getEmail());
-       usuarioMap.put("rol", usuario.getRol().name());
+        Map<String, Object> usuarioMap = new HashMap<>();
+        usuarioMap.put("name", usuario.getNombre());
+        usuarioMap.put("email", usuario.getEmail());
+        usuarioMap.put("rol", usuario.getRol().name());
 
-       Map<String, Object> response = new HashMap<>();
-       response.put("token", token);
-       response.put("usuario", usuarioMap);
-        
-       return ResponseEntity.ok(response);
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("usuario", usuarioMap);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
@@ -60,6 +58,5 @@ public class AuthController {
         UsuarioResponseDTO nuevoUsuario = usuarioService.registrarUsuario(registroDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
     }
-    
-    
+
 }

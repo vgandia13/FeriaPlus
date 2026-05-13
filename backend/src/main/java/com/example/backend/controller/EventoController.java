@@ -24,25 +24,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/api/eventos")
 @RequiredArgsConstructor
 public class EventoController {
-    
+
     private final EventoService eventoService;
 
     @GetMapping
     public ResponseEntity<Page<EventoDTO>> obtenerTodos(
-        @RequestParam(required = false) String nombre,
-        Pageable pageable
-    ) {
+            @RequestParam(required = false) String nombre,
+            Pageable pageable) {
         return ResponseEntity.ok(eventoService.obtenerTodos(nombre, pageable));
     }
-    
+
     @GetMapping("/{id}")
     public ResponseEntity<EventoDTO> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(eventoService.obtenerPorId(id));
     }
-    
+
     @PostMapping
     @PreAuthorize("hasRole('ORGANIZADOR')")
-    public ResponseEntity<EventoDTO> crear(@Valid @RequestBody EventoDTO eventoDTO){
+    public ResponseEntity<EventoDTO> crear(@Valid @RequestBody EventoDTO eventoDTO) {
         return ResponseEntity.ok(eventoService.guardar(eventoDTO));
     }
 
