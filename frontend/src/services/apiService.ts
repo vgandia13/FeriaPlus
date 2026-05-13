@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
@@ -18,6 +19,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    toast.error('Error en la solicitud');
     return Promise.reject(error);
   },
 );
@@ -29,6 +31,7 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
+    toast.error('Fallo en la sesión, por favor inicie sesión de nuevo');
     return Promise.reject(error);
   }
 );

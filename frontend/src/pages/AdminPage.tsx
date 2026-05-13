@@ -34,6 +34,15 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import AdminEditForm from "./AdminEditForm";
 
 const ROL_LABELS: Record<string, string> = {
   ROLE_ADMIN: "Admin",
@@ -63,7 +72,11 @@ const AdminPage = () => {
   const loadUsers = async (nombre: string, p: number) => {
     setLoading(true);
     try {
-      const data = await adminService.getAllUsers({ nombre, page: p, size: 9 });
+      const data = await adminService.getAllUsers({
+        nombre,
+        page: p,
+        size: 10,
+      });
       return data;
     } catch (error) {
       console.error("Error al cargar usuarios", error);
@@ -129,31 +142,40 @@ const AdminPage = () => {
       </p>
 
       <div className="overflow-x-auto rounded-lg border">
-        {totalElements > 0 && (
-          <nav className="py-2 px-8 m-2">
-            <InputGroup>
-              <InputGroupInput
-                placeholder="Buscar usuarios"
-                value={searchTerms}
-                onChange={(e) => setSearchTerms(e.target.value)}
-              />
-              <InputGroupButton asChild>
-                <Button className="rounded-2xl p-3" onClick={handleSearch}>
-                  Buscar
-                </Button>
-              </InputGroupButton>
-            </InputGroup>
-          </nav>
-        )}
+        <nav className="py-2 px-8 m-2">
+          <InputGroup>
+            <InputGroupInput
+              placeholder="Buscar usuarios"
+              value={searchTerms}
+              onChange={(e) => setSearchTerms(e.target.value)}
+            />
+            <InputGroupButton asChild>
+              <Button className="rounded-2xl p-3" onClick={handleSearch}>
+                Buscar
+              </Button>
+            </InputGroupButton>
+          </InputGroup>
+        </nav>
+
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Id</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Rol</TableHead>
-              <TableHead>Fecha de Registro</TableHead>
-              <TableHead>Acciones</TableHead>
+              <TableHead className="border-r border-border text-center">
+                Id
+              </TableHead>
+              <TableHead className="border-r border-border text-center">
+                Nombre
+              </TableHead>
+              <TableHead className="border-r border-border text-center">
+                Email
+              </TableHead>
+              <TableHead className="border-r border-border text-center">
+                Rol
+              </TableHead>
+              <TableHead className="border-r border-border text-center">
+                Fecha de Registro
+              </TableHead>
+              <TableHead className="text-center">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -161,7 +183,10 @@ const AdminPage = () => {
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   {Array.from({ length: 6 }).map((_, j) => (
-                    <TableCell key={j}>
+                    <TableCell
+                      key={j}
+                      className={j < 5 ? "border-r border-border" : ""}
+                    >
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
                   ))}
@@ -179,17 +204,25 @@ const AdminPage = () => {
             ) : (
               users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.nombre}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{ROL_LABELS[user.rol] ?? user.rol}</TableCell>
-                  <TableCell>{formatDate(user.fechaRegistro)}</TableCell>
-                  <TableCell>
+                  <TableCell className="border-r border-border text-center">
+                    {user.id}
+                  </TableCell>
+                  <TableCell className="border-r border-border text-center">
+                    {user.nombre}
+                  </TableCell>
+                  <TableCell className="border-r border-border text-center">
+                    {user.email}
+                  </TableCell>
+                  <TableCell className="border-r border-border text-center">
+                    {ROL_LABELS[user.rol] ?? user.rol}
+                  </TableCell>
+                  <TableCell className="border-r border-border text-center">
+                    {formatDate(user.fechaRegistro)}
+                  </TableCell>
+                  <TableCell className="text-center">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          Eliminar
-                        </Button>
+                        <Button variant="destructive">Eliminar</Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent className="w-auto">
                         <AlertDialogHeader>
@@ -212,6 +245,34 @@ const AdminPage = () => {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="secondary" className="ml-2">
+                          Editar
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent aria-describedby="Formulario de edicion de usuario" className="w-auto">
+                        <DialogHeader>
+                          <DialogTitle>Editar Usuario</DialogTitle>
+                        </DialogHeader>
+                        <AdminEditForm
+                          user={user}
+                          onSuccess={async () => {
+                            const data = await loadUsers(debouncedSearchTerms, page);
+                            setUsers(data.content);
+                            setTotalPages(data.totalPages);
+                            setTotalElements(data.totalElements);
+                            // Cierra el diálogo programáticamente si fuera necesario,
+                            // pero DialogClose en el BotonCancelar ya debería manejarlo.
+                          }}
+                          BotonCancelar={
+                            <DialogClose asChild>
+                              <Button>Cancelar</Button>
+                            </DialogClose>
+                          }
+                        />
+                      </DialogContent>
+                    </Dialog>
                   </TableCell>
                 </TableRow>
               ))

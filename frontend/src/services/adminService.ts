@@ -10,4 +10,14 @@ export const adminService = {
   deleteUser: async (id: string): Promise<void> => {
     await api.delete(`/admin/usuarios/${id}`);
   },
+
+  getUser: async (id: string): Promise<UsuarioResponseDTO> => {
+    const response = await api.get(`/admin/usuarios/${id}`);
+    return response.data;
+  },
+
+  updateUser: async (user: Partial<UsuarioResponseDTO>): Promise<Partial<UsuarioResponseDTO>> => {
+    const response = await api.put<UsuarioResponseDTO>(`/admin/usuarios/${user.id}`, user);
+    return response.data;
+  },
 };
