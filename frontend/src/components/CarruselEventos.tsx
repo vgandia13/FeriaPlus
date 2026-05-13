@@ -104,7 +104,11 @@ const CarruselEventos = () => {
                     <span className="text-sm font-semibold">
                       {new Date(evento.fecha).toLocaleDateString()}
                     </span>
-                    <Button variant={'link'} asChild className="text-primary text-sm font-bold hover:underline">
+                    <Button
+                      variant={"link"}
+                      asChild
+                      className="text-primary text-sm font-bold hover:underline"
+                    >
                       <Link to={`/events/${evento.id}`}> Ver más</Link>
                     </Button>
                   </CardFooter>

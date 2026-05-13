@@ -46,37 +46,37 @@
   --radius-xl: calc(0.75rem * 1.4);
 }
 :root {
-  /* Fondo blanco roto y texto oscuro */
-  --background: #faf9f6;
-  --foreground: #27272a;
+  --background: #f4f4f5;
+  --foreground: #18181b;
 
+  /* Card blanca sólida para contraste con fondo gris */
   --card: #ffffff;
-  --card-foreground: #27272a;
-  --popover: #ffffff;
-  --popover-foreground: #27272a;
+  --card-foreground: #18181b;
 
-  /* PRIMARIO: Terracota */
-  --primary: #9a4530;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+
+  /* PRIMARIO: Terracota - aumentado contraste */
+  --primary: #5f2b1e;
   --primary-foreground: #ffffff;
 
-  /* SECUNDARIO: Ocre */
-  --secondary: #c28d59;
-  --secondary-foreground: #1a1a1c;
+  /* SECUNDARIO: Ocre - aumentado contraste */
+  --secondary: #b4783e;
+  --secondary-foreground: #ffffff;
 
   /* ACCENT: Verde Oliva */
-  --accent: #5c6b2e;
+  --accent: #4a5624;
   --accent-foreground: #ffffff;
 
-  /* Destructivo y grises (mantenemos oklch por ser tonos neutros) */
-  --destructive: oklch(0.577 0.245 27.325);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted: #f4f4f5;
+  --muted-foreground: #64748b;
+  --destructive: #dc2626;
+  
+  /* Bordes más visibles */
+  --border: #71717a;
+  --input: #71717a;
 
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-
-  /* El aro de enfoque (focus) tomará el color terracota */
-  --ring: #9a4530;
+  --ring: #7f3928;
 
   /* Variables de gráficos (mantenidas por si usas Recharts) */
   --chart-1: oklch(0.87 0 0);
