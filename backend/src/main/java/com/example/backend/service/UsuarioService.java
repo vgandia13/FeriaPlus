@@ -60,6 +60,7 @@ public class UsuarioService {
         }
         usuario.setNombre(actualizacionDTO.getNombre());
         usuario.setEmail(actualizacionDTO.getEmail());
+        usuario.setRol(actualizacionDTO.getRol());
 
         Usuario updatedUsuario = usuarioRepository.save(usuario);
         return mapToResponseDTO(updatedUsuario);
