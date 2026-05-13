@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.DTO.EventoDTO;
 import com.example.backend.service.EventoService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +42,7 @@ public class EventoController {
     
     @PostMapping
     @PreAuthorize("hasRole('ORGANIZADOR')")
-    public ResponseEntity<EventoDTO> crear(@RequestBody EventoDTO eventoDTO){
+    public ResponseEntity<EventoDTO> crear(@Valid @RequestBody EventoDTO eventoDTO){
         return ResponseEntity.ok(eventoService.guardar(eventoDTO));
     }
 
