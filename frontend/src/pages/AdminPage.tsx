@@ -123,8 +123,10 @@ const AdminPage = () => {
     try {
       await adminService.deleteUser(id);
       toast.success("Usuario eliminado correctamente.");
-      setPage(0);
-      await loadUsers(debouncedSearchTerms, page);
+      const data = await loadUsers(debouncedSearchTerms, page);
+      setUsers(data.content);
+      setTotalPages(data.totalPages);
+      setTotalElements(data.totalElements);
     } catch (error) {
       console.error(error);
       toast.error("No se pudo eliminar el usuario.");
@@ -311,7 +313,7 @@ const AdminPage = () => {
             <ChevronsRight
               onClick={() => setPage(totalPages - 1)}
               className={
-                page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"
+                page >= totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"
               }
             />
           </Button>

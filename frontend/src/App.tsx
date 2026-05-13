@@ -9,10 +9,12 @@ import EventPage from "./pages/EventPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminPage from "./pages/AdminPage";
 import { Rol } from "./types/Rol";
+import { AuthInitializer } from "./components/AuthInitializer";
 
 function App() {
   return (
     <BrowserRouter>
+    <AuthInitializer />
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/login" element={<LoginPage />} />
