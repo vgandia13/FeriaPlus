@@ -51,7 +51,7 @@ const ROL_LABELS: Record<string, string> = {
   ROLE_EXPOSITOR: "Expositor",
 };
 
-const formatDate = (ISOdate: string) =>
+export const formatDate = (ISOdate: string) =>
   new Date(ISOdate).toLocaleDateString("es-ES", {
     day: "2-digit",
     month: "2-digit",
@@ -253,14 +253,20 @@ const AdminPage = () => {
                           Editar
                         </Button>
                       </DialogTrigger>
-                      <DialogContent aria-describedby="Formulario de edicion de usuario" className="w-auto">
+                      <DialogContent
+                        aria-describedby="Formulario de edicion de usuario"
+                        className="w-auto"
+                      >
                         <DialogHeader>
                           <DialogTitle>Editar Usuario</DialogTitle>
                         </DialogHeader>
                         <AdminEditForm
                           user={user}
                           onSuccess={async () => {
-                            const data = await loadUsers(debouncedSearchTerms, page);
+                            const data = await loadUsers(
+                              debouncedSearchTerms,
+                              page,
+                            );
                             setUsers(data.content);
                             setTotalPages(data.totalPages);
                             setTotalElements(data.totalElements);
@@ -313,7 +319,9 @@ const AdminPage = () => {
             <ChevronsRight
               onClick={() => setPage(totalPages - 1)}
               className={
-                page >= totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"
+                page >= totalPages - 1
+                  ? "pointer-events-none opacity-50"
+                  : "cursor-pointer"
               }
             />
           </Button>

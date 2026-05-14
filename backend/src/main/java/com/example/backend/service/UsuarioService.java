@@ -12,9 +12,11 @@ import com.example.backend.DTO.ReservaDTO;
 import com.example.backend.DTO.UsuarioRegistroDTO;
 import com.example.backend.DTO.DashboardDTO;
 import com.example.backend.DTO.EventoDTO;
+import com.example.backend.DTO.PuestoDTO;
 import com.example.backend.repository.ResenaRepository;
 import com.example.backend.repository.ReservaRepository;
 import com.example.backend.repository.EventoRepository;
+import com.example.backend.repository.PuestoRepository;
 import java.util.stream.Collectors;
 import com.example.backend.DTO.UsuarioResponseDTO;
 import com.example.backend.exception.EmailRegistradoException;
@@ -30,6 +32,7 @@ public class UsuarioService {
     private final ResenaRepository resenaRepository;
     private final ReservaRepository reservaRepository;
     private final EventoRepository eventoRepository;
+    private final PuestoRepository puestoRepository;
 
     public UsuarioResponseDTO registrarUsuario(UsuarioRegistroDTO registroDTO){
         if (usuarioRepository.existsByEmail(registroDTO.getEmail())) {
@@ -91,6 +94,11 @@ public class UsuarioService {
                     if (e.getOrganizador() != null) dto.setOrganizadorId(e.getOrganizador().getId());
                     return dto;
                 })
+                .collect(Collectors.toList()));
+
+        // puestos
+        dashboard.setPuestos(puestoRepository.findPuestosByExpositorId(usuario.getId()).stream()
+                .map(p -> new PuestoDTO(p.getId(), p.getNombre(), p.getDimensiones(), p.getPrecio().doubleValue()))
                 .collect(Collectors.toList()));
 
         return dashboard;
