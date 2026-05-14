@@ -1,4 +1,5 @@
 import { UbicacionDTO } from "./UbicacionDTO";
+import { ResenaDTO } from "./ResenaDTO";
 
 export interface EventoDTO {
   id?: number;
@@ -9,4 +10,5 @@ export interface EventoDTO {
   imagenUrl?: string;
   categoriaId?: number;
   organizadorId: number;
+  resenas?: ResenaDTO[];
 }

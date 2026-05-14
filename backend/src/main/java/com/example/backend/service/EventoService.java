@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.backend.mapper.UbicacionMapper;
 import com.example.backend.DTO.EventoDTO;
+import com.example.backend.DTO.ResenaDTO;
 import com.example.backend.exception.EventoNoEncontradoException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
 import com.example.backend.model.Evento;
@@ -89,6 +90,13 @@ public class EventoService {
         }
         if(evento.getOrganizador() != null){
             dto.setOrganizadorId(evento.getOrganizador().getId());
+        }
+        if (evento.getReseñas() != null) {
+            dto.setResenas(evento.getReseñas().stream()
+                    .map(r -> new ResenaDTO(r.getId(), r.getValoracion(), r.getComentario(), 
+                                           r.getUbicacion() != null ? r.getUbicacion().getId() : null, 
+                                           r.getEvento() != null ? r.getEvento().getId() : null))
+                    .toList());
         }
         return dto;
     }

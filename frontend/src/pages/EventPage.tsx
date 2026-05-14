@@ -29,8 +29,8 @@ const EventPage = () => {
   const lng = event?.ubicacion?.longitud;
   const posicionValida = lat !== undefined && lng !== undefined;
 
-  const darkIcon =  L.icon({
-    iconUrl: '/dark-map-icon.png',
+  const darkIcon = L.icon({
+    iconUrl: "/dark-map-icon.png",
     shadowUrl: iconShadow,
     iconSize: [40, 41],
     iconAnchor: [17, 41],
@@ -39,9 +39,10 @@ const EventPage = () => {
 
   const mapRef = useRef<L.Map | null>(null);
 
-  const tileUrl = theme === 'dark'
-    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  const tileUrl =
+    theme === "dark"
+      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+      : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
   const centrarMapa = () => {
     if (mapRef.current && posicionValida) {
@@ -57,6 +58,7 @@ const EventPage = () => {
       try {
         const data = await EventoService.obtenerPorId(Number(id));
         setEvent(data);
+        console.log(data);
       } catch (error) {
         console.error("Error al cargar el evento", error);
         toast.error("No se pudo cargar el evento.");
@@ -97,6 +99,20 @@ const EventPage = () => {
         Fecha: {new Date(event.fecha).toLocaleDateString()}
       </p>
 
+      {event.resenas && event.resenas.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold">Reseñas</h2>
+          <ul className="mt-2 space-y-2">
+            {event.resenas.map((resena) => (
+              <li key={resena.id} className="border p-2 rounded">
+                <p>Valoración: {resena.valoracion}/5</p>
+                <p>{resena.comentario}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {posicionValida ? (
         <div className="mt-8">
           <div className="flex justify-between items-center mb-2">
@@ -121,7 +137,10 @@ const EventPage = () => {
                 url={tileUrl}
               />
 
-              <Marker position={[lat, lng]} icon={ theme === 'light' ? defaultIcon : darkIcon }>
+              <Marker
+                position={[lat, lng]}
+                icon={theme === "light" ? defaultIcon : darkIcon}
+              >
                 <Popup className="bg-background">
                   <div className="bg-primary text-primary-foreground p-2 rounded-md -m-1">
                     {event.ubicacion.nombre}

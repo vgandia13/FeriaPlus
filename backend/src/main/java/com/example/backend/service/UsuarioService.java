@@ -80,7 +80,17 @@ public class UsuarioService {
 
         // eventos asistidos
         dashboard.setEventosAsistidos(eventoRepository.findByAsistentes_Id(usuario.getId()).stream()
-                .map(e -> new EventoDTO(e.getId(), e.getNombre(), e.getDescripcion(), e.getFecha().toString(), null, null, null, e.getImagenUrl(), e.getCategoria().getId(), e.getOrganizador().getId()))
+                .map(e -> {
+                    EventoDTO dto = new EventoDTO();
+                    dto.setId(e.getId());
+                    dto.setNombre(e.getNombre());
+                    dto.setDescripcion(e.getDescripcion());
+                    dto.setFecha(e.getFecha().toString());
+                    dto.setImagenUrl(e.getImagenUrl());
+                    if (e.getCategoria() != null) dto.setCategoriaId(e.getCategoria().getId());
+                    if (e.getOrganizador() != null) dto.setOrganizadorId(e.getOrganizador().getId());
+                    return dto;
+                })
                 .collect(Collectors.toList()));
 
         return dashboard;
