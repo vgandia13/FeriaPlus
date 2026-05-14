@@ -53,7 +53,7 @@ const DashboardPage = () => {
               </p>
               <p>
                 <span className="font-semibold">Rol:</span>{" "}
-                {dashboardData.usuario.rol}
+                {dashboardData.usuario.rol.slice(5).toLocaleLowerCase()}
               </p>
               <p>
                 <span className="font-semibold">Fecha de registro:</span>{" "}
