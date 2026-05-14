@@ -7,15 +7,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.backend.repository.UsuarioRepository;
 import com.example.backend.model.Usuario;
-import com.example.backend.DTO.DashboardDTO;
 import com.example.backend.DTO.ResenaDTO;
 import com.example.backend.DTO.ReservaDTO;
+import com.example.backend.DTO.UsuarioRegistroDTO;
+import com.example.backend.DTO.DashboardDTO;
 import com.example.backend.DTO.EventoDTO;
-import com.example.backend.DTO.PuestoDTO;
 import com.example.backend.repository.ResenaRepository;
 import com.example.backend.repository.ReservaRepository;
 import com.example.backend.repository.EventoRepository;
-import com.example.backend.repository.PuestoRepository;
 import java.util.stream.Collectors;
 import com.example.backend.DTO.UsuarioResponseDTO;
 import com.example.backend.exception.EmailRegistradoException;
@@ -31,7 +30,6 @@ public class UsuarioService {
     private final ResenaRepository resenaRepository;
     private final ReservaRepository reservaRepository;
     private final EventoRepository eventoRepository;
-    private final PuestoRepository puestoRepository;
 
     public UsuarioResponseDTO registrarUsuario(UsuarioRegistroDTO registroDTO){
         if (usuarioRepository.existsByEmail(registroDTO.getEmail())) {
@@ -59,6 +57,12 @@ public class UsuarioService {
         return mapToResponseDTO(usuario);
     }
 
+    public UsuarioResponseDTO obtenerUsuarioPorEmail(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
+        return mapToResponseDTO(usuario);
+    }
+
     public DashboardDTO obtenerDatosDashboard(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
@@ -71,7 +75,7 @@ public class UsuarioService {
                 .collect(Collectors.toList()));
 
         dashboard.setReservas(reservaRepository.findByExpositorId(usuario.getId()).stream()
-                .map(r -> new ReservaDTO(r.getId(), r.getFechaReserva(), r.getEstado().toString(), r.getExpositor().getId(), r.getPuesto().getId()))
+                .map(r -> new ReservaDTO(r.getId(), r.getFechaReserva(), r.getEstado().name(), r.getExpositor().getId(), r.getPuesto().getId()))
                 .collect(Collectors.toList()));
 
         // eventos asistidos

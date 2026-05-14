@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import java.security.Principal;
 
 import com.example.backend.DTO.DashboardDTO;
+import com.example.backend.DTO.UsuarioRegistroDTO;
 import com.example.backend.DTO.UsuarioResponseDTO;
 import com.example.backend.service.UsuarioService;
 

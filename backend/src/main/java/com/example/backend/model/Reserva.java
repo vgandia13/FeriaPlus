@@ -29,6 +29,3 @@ public class Reserva {
     private Puesto puesto;
 }
 
-enum EstadoReserva {
-    PENDIENTE, CONFIRMADA, CANCELADA
-}
