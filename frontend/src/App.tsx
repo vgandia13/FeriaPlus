@@ -10,11 +10,12 @@ import NotFoundPage from "./pages/NotFoundPage";
 import AdminPage from "./pages/AdminPage";
 import { Rol } from "./types/Rol";
 import { AuthInitializer } from "./components/AuthInitializer";
+import DashboardPage from "./pages/DashboardPage";
 
 function App() {
   return (
     <BrowserRouter>
-    <AuthInitializer />
+      <AuthInitializer />
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/login" element={<LoginPage />} />
@@ -24,6 +25,7 @@ function App() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/events/:id" element={<EventPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
           </Route>
 
           {/*TODO: rutas para organizadores y admin */}

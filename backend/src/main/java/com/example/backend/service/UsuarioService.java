@@ -52,6 +52,35 @@ public class UsuarioService {
         return mapToResponseDTO(usuario);
     }
 
+    // Método para que el usuario actualice su propio perfil (sin poder cambiar su rol)
+    public UsuarioResponseDTO actualizarPerfilPorUsername(String email, UsuarioRegistroDTO actualizacionDTO) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
+
+        // 1. Verificación de cambio de email
+        if (actualizacionDTO.getEmail() != null && !usuario.getEmail().equals(actualizacionDTO.getEmail())) {
+            if (usuarioRepository.existsByEmail(actualizacionDTO.getEmail())) {
+                throw new EmailRegistradoException("El email ya está registrado");
+            }
+            usuario.setEmail(actualizacionDTO.getEmail());
+        }
+
+        // 2. Actualización de datos básicos
+        if (actualizacionDTO.getNombre() != null && !actualizacionDTO.getNombre().isBlank()) {
+            usuario.setNombre(actualizacionDTO.getNombre());
+        }
+
+        // 3. Actualización de contraseña (solo si se envía una nueva)
+        if (actualizacionDTO.getPassword() != null && !actualizacionDTO.getPassword().isBlank()) {
+            usuario.setPassword(passwordEncoder.encode(actualizacionDTO.getPassword()));
+        }
+
+        // IMPORTANTE: No incluimos usuario.setRol() aquí por seguridad.
+
+        Usuario updatedUsuario = usuarioRepository.save(usuario);
+        return mapToResponseDTO(updatedUsuario);
+    }
+
     public UsuarioResponseDTO actualizarPerfil(Long id, UsuarioRegistroDTO actualizacionDTO){
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));

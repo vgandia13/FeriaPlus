@@ -43,7 +43,7 @@ const HomePage = () => {
               dropdown_year: "flex-1 flex",
 
               dropdown:
-                "h-8 w-full cursor-pointer rounded-md border border-input bg-primary px-2 py-1 text-sm font-medium shadow-sm transition-colors hover:bg-primary hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                "h-8 w-full cursor-pointer text-white rounded-md border border-input bg-primary px-2 py-1 text-sm font-medium shadow-sm transition-colors hover:bg-primary hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
             }}
           />
 
