@@ -6,7 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import lombok.RequiredArgsConstructor;
 import java.security.Principal;
 
-import com.example.backend.DTO.UsuarioRegistroDTO;
+import com.example.backend.DTO.DashboardDTO;
 import com.example.backend.DTO.UsuarioResponseDTO;
 import com.example.backend.service.UsuarioService;
 
@@ -17,11 +17,10 @@ public class UsuarioController {
 
     private final UsuarioService usuarioService;
 
-    @GetMapping("/me")
+    @GetMapping("/dashboard")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UsuarioResponseDTO> mostrarMiPerfil(Principal principal) {
-        String email = principal.getName();
-        return ResponseEntity.ok(usuarioService.obtenerUsuarioPorEmail(email));
+    public ResponseEntity<DashboardDTO> obtenerDashboard(Principal principal) {
+        return ResponseEntity.ok(usuarioService.obtenerDatosDashboard(principal.getName()));
     }
 
     @PutMapping("/me")

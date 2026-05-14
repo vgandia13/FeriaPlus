@@ -3,12 +3,12 @@ import { useEffect } from "react";
 
 const DashboardPage = () => {
   useEffect(() => {
-    const loadUser = async () => {
-      const response = await userService.getLoggedUser();
+    const loadDashboard = async () => {
+      const response = await userService.getDashboardData();
       console.log(response);
     };
 
-    loadUser();
+    loadDashboard();
   });
 
   return (
