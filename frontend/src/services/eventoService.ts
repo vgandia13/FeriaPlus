@@ -3,7 +3,19 @@ import type { EventoDTO } from '../types/EventoDTO'; // Tu interfaz TypeScript
 
 export const EventoService = {
   // Público según tu SecurityConfig
-  getAll: async (params?: { nombre?: string; page?: number; size?: number }): Promise<{ content: EventoDTO[]; totalPages: number; totalElements: number }> => {
+  getAll: async (params?: {
+    nombre?: string;
+    page?: number;
+    size?: number;
+  }): Promise<{
+    content: EventoDTO[];
+    page: {
+      totalPages: number;
+      totalElements: number;
+      size: number;
+      number: number;
+    };
+  }> => {
     const response = await api.get('/eventos', { params });
     return response.data;
   },
