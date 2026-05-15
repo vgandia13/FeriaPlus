@@ -63,11 +63,11 @@ export const formatDate = (ISOdate: string) =>
 const AdminPage = () => {
   const [users, setUsers] = useState<UsuarioResponseDTO[]>([]);
   const [loading, setLoading] = useState(false);
-  const [totalElements, setTotalElements] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
   const [searchTerms, setSearchTerms] = useState("");
   const [debouncedSearchTerms, setDebouncedSearchTerms] = useState("");
   const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
   const loadUsers = async (nombre: string, p: number) => {
     setLoading(true);
@@ -81,7 +81,7 @@ const AdminPage = () => {
     } catch (error) {
       console.error("Error al cargar usuarios", error);
       toast.error("No se pudieron cargar los usuarios.");
-      return { content: [], totalPages: 0, totalElements: 0 };
+      return { content: [], page: { totalPages: 0, totalElements: 0 } };
     } finally {
       setLoading(false);
     }
@@ -102,8 +102,8 @@ const AdminPage = () => {
       const data = await loadUsers(debouncedSearchTerms, page);
       if (isMounted) {
         setUsers(data.content);
-        setTotalPages(data.totalPages);
-        setTotalElements(data.totalElements);
+        setTotalPages(data.page.totalPages);
+        setTotalElements(data.page.totalElements);
       }
     };
 
@@ -123,10 +123,10 @@ const AdminPage = () => {
     try {
       await adminService.deleteUser(id);
       toast.success("Usuario eliminado correctamente.");
-      const data = await loadUsers(debouncedSearchTerms, page);
-      setUsers(data.content);
-      setTotalPages(data.totalPages);
-      setTotalElements(data.totalElements);
+      const dataFetch = await loadUsers(debouncedSearchTerms, page);
+      setUsers(dataFetch.content);
+      setTotalPages(dataFetch.page.totalPages);
+      setTotalElements(dataFetch.page.totalElements);
     } catch (error) {
       console.error(error);
       toast.error("No se pudo eliminar el usuario.");
@@ -268,8 +268,8 @@ const AdminPage = () => {
                               page,
                             );
                             setUsers(data.content);
-                            setTotalPages(data.totalPages);
-                            setTotalElements(data.totalElements);
+                            setTotalPages(data.page.totalPages);
+                            setTotalElements(data.page.totalElements);
                             // Cierra el diálogo programáticamente si fuera necesario,
                             // pero DialogClose en el BotonCancelar ya debería manejarlo.
                           }}

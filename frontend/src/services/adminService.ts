@@ -2,7 +2,14 @@ import api from './apiService';
 import { UsuarioResponseDTO } from '@/types/UsuarioResponseDTO';
 
 export const adminService = {
-  getAllUsers: async (params?: { nombre?: string; page?: number; size?: number }): Promise<{ content: UsuarioResponseDTO[]; totalPages: number; totalElements: number }> => {
+  getAllUsers: async (params?: {
+    nombre?: string;
+    page?: number;
+    size?: number;
+  }): Promise<{
+    content: UsuarioResponseDTO[];
+    page: { number: number; totalPages: number; totalElements: number };
+  }> => {
     const response = await api.get('/admin/usuarios', { params });
     return response.data;
   },
@@ -16,8 +23,13 @@ export const adminService = {
     return response.data;
   },
 
-  updateUser: async (user: Partial<UsuarioResponseDTO>): Promise<Partial<UsuarioResponseDTO>> => {
-    const response = await api.put<UsuarioResponseDTO>(`/admin/usuarios/${user.id}`, user);
+  updateUser: async (
+    user: Partial<UsuarioResponseDTO>,
+  ): Promise<Partial<UsuarioResponseDTO>> => {
+    const response = await api.put<UsuarioResponseDTO>(
+      `/admin/usuarios/${user.id}`,
+      user,
+    );
     return response.data;
   },
 };

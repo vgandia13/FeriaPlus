@@ -3,7 +3,7 @@ package com.example.backend.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.backend.repository.UsuarioRepository;
 import com.example.backend.model.Usuario;
@@ -28,13 +28,13 @@ import lombok.RequiredArgsConstructor;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     private final ResenaRepository resenaRepository;
     private final ReservaRepository reservaRepository;
     private final EventoRepository eventoRepository;
     private final PuestoRepository puestoRepository;
 
-    public UsuarioResponseDTO registrarUsuario(UsuarioRegistroDTO registroDTO){
+    public UsuarioResponseDTO registrarUsuario(UsuarioRegistroDTO registroDTO) {
         if (usuarioRepository.existsByEmail(registroDTO.getEmail())) {
             throw new EmailRegistradoException("El email ya está registrado");
         }
@@ -46,7 +46,7 @@ public class UsuarioService {
 
     public Page<UsuarioResponseDTO> listarUsuarios(String nombre, Pageable pageable) {
         Page<Usuario> usuarios;
-        if(nombre != null && !nombre.isBlank()) {
+        if (nombre != null && !nombre.isBlank()) {
             usuarios = usuarioRepository.findByNombreContainingIgnoreCase(nombre, pageable);
         } else {
             usuarios = usuarioRepository.findAll(pageable);
@@ -74,11 +74,13 @@ public class UsuarioService {
         dashboard.setUsuario(mapToResponseDTO(usuario));
 
         dashboard.setResenas(resenaRepository.findByUsuarioId(usuario.getId()).stream()
-                .map(r -> new ResenaDTO(r.getId(), r.getValoracion(), r.getComentario(), r.getUbicacion().getId(), r.getEvento().getId()))
+                .map(r -> new ResenaDTO(r.getId(), r.getValoracion(), r.getComentario(), r.getUbicacion().getId(),
+                        r.getEvento().getId()))
                 .collect(Collectors.toList()));
 
         dashboard.setReservas(reservaRepository.findByExpositorId(usuario.getId()).stream()
-                .map(r -> new ReservaDTO(r.getId(), r.getFechaReserva(), r.getEstado().name(), r.getExpositor().getId(), r.getPuesto().getId()))
+                .map(r -> new ReservaDTO(r.getId(), r.getFechaReserva(), r.getEstado().name(), r.getExpositor().getId(),
+                        r.getPuesto().getId()))
                 .collect(Collectors.toList()));
 
         // eventos asistidos
@@ -90,8 +92,10 @@ public class UsuarioService {
                     dto.setDescripcion(e.getDescripcion());
                     dto.setFecha(e.getFecha().toString());
                     dto.setImagenUrl(e.getImagenUrl());
-                    if (e.getCategoria() != null) dto.setCategoriaId(e.getCategoria().getId());
-                    if (e.getOrganizador() != null) dto.setOrganizadorId(e.getOrganizador().getId());
+                    if (e.getCategoria() != null)
+                        dto.setCategoriaId(e.getCategoria().getId());
+                    if (e.getOrganizador() != null)
+                        dto.setOrganizadorId(e.getOrganizador().getId());
                     return dto;
                 })
                 .collect(Collectors.toList()));
@@ -104,7 +108,8 @@ public class UsuarioService {
         return dashboard;
     }
 
-    // Método para que el usuario actualice su propio perfil (sin poder cambiar su rol)
+    // Método para que el usuario actualice su propio perfil (sin poder cambiar su
+    // rol)
     public UsuarioResponseDTO actualizarPerfilPorUsername(String email, UsuarioRegistroDTO actualizacionDTO) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
@@ -133,10 +138,11 @@ public class UsuarioService {
         return mapToResponseDTO(updatedUsuario);
     }
 
-    public UsuarioResponseDTO actualizarPerfil(Long id, UsuarioRegistroDTO actualizacionDTO){
+    public UsuarioResponseDTO actualizarPerfil(Long id, UsuarioRegistroDTO actualizacionDTO) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
-        if (!usuario.getEmail().equals(actualizacionDTO.getEmail()) && usuarioRepository.existsByEmail(actualizacionDTO.getEmail())) {
+        if (!usuario.getEmail().equals(actualizacionDTO.getEmail())
+                && usuarioRepository.existsByEmail(actualizacionDTO.getEmail())) {
             throw new EmailRegistradoException("El email ya está registrado");
         }
         usuario.setNombre(actualizacionDTO.getNombre());

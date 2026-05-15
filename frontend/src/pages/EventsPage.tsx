@@ -41,7 +41,7 @@ const EventsPage = () => {
     } catch (error) {
       console.error("Error al cargar eventos", error);
       toast.error("No se pudieron cargar los eventos.");
-      return { content: [], totalPages: 0, totalElements: 0 };
+      return { content: [], page: { totalPages: 0, totalElements: 0 } };
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ const EventsPage = () => {
       const data = await loadEvents(debouncedSearchTerm, page);
       if (isMounted) {
         setEvents(data.content);
-        setTotalPages(data.totalPages);
+        setTotalPages(data.page.totalPages);
       }
     };
 

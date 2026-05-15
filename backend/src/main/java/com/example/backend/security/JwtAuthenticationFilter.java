@@ -6,32 +6,31 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private final UserDetailsService userDetailsService;
     private final JwtUtils jwtUtils;
 
     // Inyectamos nuestras herramientas
     public JwtAuthenticationFilter(JwtUtils jwtUtils, UserDetailsService userDetailsService) {
         this.jwtUtils = jwtUtils;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, 
-                                    HttpServletResponse response, 
-                                    FilterChain filterChain) throws ServletException, IOException {
-        
+    protected void doFilterInternal(HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
+
         // Obtener el token del header "Authorization"
         String header = request.getHeader("Authorization");
         String token = null;
@@ -40,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7); // Quitamos "Bearer " para quedarnos solo con el código
             try {
-                if(jwtUtils.validateToken(token)) {
+                if (jwtUtils.validateToken(token)) {
                     email = jwtUtils.getEmailFromToken(token);
                 } else {
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
@@ -52,21 +51,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        //  Si hay email y el usuario no está ya autenticado en esta petición...
+        // Si hay email y el usuario no está ya autenticado en esta petición...
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            String rolesString = jwtUtils.getRolesFromToken(token);
-            
-            List<SimpleGrantedAuthority> authorities = Arrays.stream(rolesString.split(","))
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
+            try {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities());
 
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (UsernameNotFoundException e) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error al validar el token");
+                return;
+            }
         }
 
-        //  Continuar con el siguiente filtro
+        // Continuar con el siguiente filtro
         filterChain.doFilter(request, response);
     }
 }
