@@ -100,7 +100,7 @@ Esta es la forma más rápida de ejecutar el proyecto completo sin instalar Java
 **1. Clona o descomprime el proyecto** y sitúate en la carpeta raíz (donde está el `docker-compose.yml`):
 
 ```bash
-cd Proyecto-Intermodular-2-DAW
+cd FeriaPlus
 ```
 
 **2. Construye y levanta los tres contenedores:**
