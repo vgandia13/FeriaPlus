@@ -174,13 +174,10 @@ public class UsuarioService {
         usuario.setNombre(registroDTO.getNombre());
         usuario.setEmail(registroDTO.getEmail());
         usuario.setPassword(passwordEncoder.encode(registroDTO.getPassword()));
-        if(registroDTO.getRol() != Rol.ROLE_ADMIN && registroDTO.getRol() != null){
+        if(registroDTO.getRol() != Rol.ROLE_ADMIN){
             usuario.setRol(registroDTO.getRol());
-        }else if(registroDTO.getRol() == Rol.ROLE_ADMIN){
-            throw new NoAutorizadoException("No se puede registrar como Admin");
         }else{
-            //TODO: crear CampoVacioException o algo por el estilo.
-            throw new NoAutorizadoException("El rol no puede estar vacío.");
+            throw new NoAutorizadoException("No se puede registrar como Admin");
         }
         return usuario;
     }
