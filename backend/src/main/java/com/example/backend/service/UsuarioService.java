@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.backend.repository.UsuarioRepository;
+import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.DTO.ResenaDTO;
 import com.example.backend.DTO.ReservaDTO;
@@ -20,6 +21,7 @@ import com.example.backend.repository.PuestoRepository;
 import java.util.stream.Collectors;
 import com.example.backend.DTO.UsuarioResponseDTO;
 import com.example.backend.exception.EmailRegistradoException;
+import com.example.backend.exception.NoAutorizadoException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
 import lombok.RequiredArgsConstructor;
 
@@ -172,7 +174,14 @@ public class UsuarioService {
         usuario.setNombre(registroDTO.getNombre());
         usuario.setEmail(registroDTO.getEmail());
         usuario.setPassword(passwordEncoder.encode(registroDTO.getPassword()));
-        usuario.setRol(registroDTO.getRol());
+        if(registroDTO.getRol() != Rol.ROLE_ADMIN && registroDTO.getRol() != null){
+            usuario.setRol(registroDTO.getRol());
+        }else if(registroDTO.getRol() == Rol.ROLE_ADMIN){
+            throw new NoAutorizadoException("No se puede registrar como Admin");
+        }else{
+            //TODO: crear CampoVacioException o algo por el estilo.
+            throw new NoAutorizadoException("El rol no puede estar vacío.");
+        }
         return usuario;
     }
 }
