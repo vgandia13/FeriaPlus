@@ -52,8 +52,7 @@ const RegisterPage = () => {
     };
 
     try {
-      const response = await AuthService.register(payload);
-      localStorage.setItem("usuario", JSON.stringify(response));
+      await AuthService.register(payload);
       console.log("Registro exitoso");
       toast("Registro exitoso", {
         description: "Bienvenido a Feria+",
@@ -164,11 +163,7 @@ const RegisterPage = () => {
               </Select>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Registrando..." : "Registrarse"}
             </Button>
           </CardContent>
