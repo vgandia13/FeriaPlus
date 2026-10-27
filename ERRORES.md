@@ -4,7 +4,7 @@
 > Auditoría: 2026-10-26. Última revisión: 2026-10-27 (3ª auditoría completa: cada punto comprobado en el código y, en el backend, reproducido con el jar en H2).
 > Git: `main` = `367a07c` (PR #6, Spring Boot 4.1.2, tag `v1.0.0`). `fix/seguridad-auth` = `f6804b0` (1.1 + quitar `@Repository`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
-> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.19 (opción A: handlers 400/409 con mensajes fijos; el catch-all responde "Error interno" y registra el detalle con `log.error`), 2.20 y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`).
+> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.19 (opción A: handlers 400/409 con mensajes fijos; el catch-all responde "Error interno" y registra el detalle con `log.error`), 2.20, 2.2 (409 con mensaje claro si el usuario tiene eventos, reservas o reseñas), 2.1 (401 en `AuthenticationException` y 403 en `AccessDeniedException`), 2.11 (el interceptor no redirige con un 401 de `/auth/*`), 2.15 (el filtro JWT ya no corta la petición; `HttpStatusEntryPoint` da 401 en rutas protegidas), 2.10 (el registro no guarda `usuario`; la Navbar exige `isLogged`), 2.22 (`ProtectedRoute` expulsa si no hay `usuario`), 4.1 (14 tests: 13 de integración con MockMvc + H2 y 1 unitario con Mockito; `h2` en scope `test`) y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`).
 
 ## Cómo leer este archivo
 
@@ -15,13 +15,13 @@
 
 | # | Rama | Contenido | Prioridad máx. | Puntos |
 |---|---|---|---|---|
-| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 7 |
+| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 0 |
 | 2 | `fix/eventos` | Crear/editar eventos y modelo JPA | 🔴 P1 | 11 |
 | 3 | `fix/config` | Docker, actuator, perfiles, seeder | 🟠 P2 | 7 |
-| 4 | `fix/frontend-ui` | HTML base, navegación, paginación, accesibilidad | 🟠 P2 | 15 |
+| 4 | `fix/frontend-ui` | HTML base, navegación, paginación, accesibilidad | 🟠 P2 | 16 |
 | 5 | `chore/limpieza-spring-boot-4` | Código muerto y dependencias | 🟢 P4 | 12 |
 | 6 | `feature/panel-organizador` | Funcionalidad pendiente | — | 1 |
-| — | Sin rama | Mejoras opcionales para el TFG | — | 7 |
+| — | Sin rama | Mejoras opcionales para el TFG | — | 9 |
 
 ### Comandos para verificar cada arreglo (PowerShell)
 
@@ -47,50 +47,7 @@ docker compose up --build   # prueba integrada con MySQL
 
 > Rama actual. Al terminar: PR a `main` → tag `v1.1.0`.
 
-- [ ] **2.2 🟠 Borrar un usuario con reseñas, reservas, asistencias o eventos da 500**
-  - **Problema:** `B/service/UsuarioService.java:177`. Las FK sin cascada provocan `DataIntegrityViolationException`, que llega como 500.
-  - **Solución:**
-    - **A)** Comprobar las dependencias antes de borrar y responder **409** con un mensaje claro ("el usuario tiene eventos/reservas").
-    - **B)** Borrado lógico: un campo `activo=false` en lugar de `delete`.
-    - **C)** Borrar las dependencias en cascada (desaconsejado: se pierden eventos y reseñas).
-
-- [ ] **2.1 🟠 Los errores de autenticación devuelven 500**
-  - **Problema:** `B/exception/GlobalExceptionHandler.java:58` captura todo `RuntimeException`. Un login con credenciales malas da 500 (`BadCredentialsException`, debería ser 401); un `@PreAuthorize` denegado da 500 (`AccessDeniedException`, debería ser 403).
-  - **Solución:**
-    - **A)** Añadir `@ExceptionHandler(AuthenticationException.class)` → 401 y `@ExceptionHandler(AccessDeniedException.class)` → 403, antes del catch-all.
-    - **B)** Hacerlo directamente con `ProblemDetail` (ver 5.5).
-
-- [ ] **2.11 🟠 Un login fallido recargará la página al arreglar 2.1**
-  - **Problema:** `frontend/src/services/apiService.ts:41` trata cualquier 401 como sesión caducada y hace `window.location.href = '/login'`. Cuando 2.1 devuelva 401, se perderá el toast "Error en las credenciales".
-  - **Solución:**
-    - **A)** Excluir de la redirección las URLs que empiezan por `/auth/` (`if (status === 401 && !error.config.url.startsWith('/auth'))`).
-    - **B)** Redirigir solo si había token guardado (si no lo había, no es una sesión caducada).
-
-- [ ] **2.15 🟠 Un token caducado bloquea las páginas públicas**
-  - **Problema:** `B/security/JwtAuthenticationFilter.java:44,48` corta la petición si el token es inválido o ha caducado, aunque la ruta sea `permitAll` (`GET /api/eventos`). Desde que 2.18 está resuelto llega un 401 y `apiService.ts:41` manda a `/login`: un visitante con un token caducado no puede ver Home ni Eventos sin volver a iniciar sesión.
-  - **Solución:**
-    - **A)** Si el token no es válido, no responder: llamar a `filterChain.doFilter(...)` sin autenticar y dejar que `SecurityConfig` decida (las rutas protegidas darán 401 por sí solas).
-    - **B)** Frontend (complementario): al recibir 401/403 con token caducado, borrar el token y reintentar la petición sin él.
-
-- [ ] **2.10 🟠 Tras registrarse, la Navbar muestra la sesión iniciada sin token**
-  - **Problema:** `frontend/src/pages/RegisterPage.tsx:56` guarda la respuesta del registro en `localStorage.usuario`. Al recargar, `Navbar.tsx:76` decide por `usuario` (no por `isLogged`) y muestra "Mi panel" y "Salir" sin estar logueado. `authService.ts:17` tipa la respuesta como `UsuarioRegistro`, pero el backend devuelve `UsuarioResponseDTO`.
-  - **Solución:**
-    - **A)** Quitar ese `localStorage.setItem` (el login ya guarda el usuario) y corregir el tipo a `UsuarioResponseDTO`.
-    - **B)** Además: que `Navbar` decida con `isLogged && usuario`.
-    - **C)** Alternativa de UX: tras registrarse, hacer login automático con las mismas credenciales.
-
-- [ ] **2.22 🟠 `ProtectedRoute` no comprueba el rol si `usuario` es `null`**
-  - **Problema:** `frontend/src/components/ProtectedRoute.tsx:16`. Con token y `usuario` ausente o corrupto (`AppContext.tsx:35` devuelve `null`), cualquiera entra en `/admin`. El backend responde 403, pero se ve el panel.
-  - **Solución:**
-    - **A)** `if (allowedRoles && (!usuario || !allowedRoles.includes(usuario.rol)))`.
-    - **B)** Además: si hay token pero no `usuario`, hacer logout en `AppContext`.
-
-- [ ] **4.1 🟢 Cero tests** (empezar en esta rama)
-  - **Problema:** no existe `backend/src/test` ni `spring-boot-starter-test`.
-  - **Solución:**
-    - **A)** Añadir `spring-boot-starter-test` y escribir tests de integración de lo arreglado aquí: login correcto/incorrecto (401), registro con `ROLE_ADMIN` (403), `PUT` de admin sin rol (400), admin editando o borrando a un admin (403), cambio de contraseña con la actual incorrecta (403).
-    - **B)** Hacerlo con Testcontainers + MySQL real (5.7). Requiere Docker en marcha al ejecutar `mvnw verify`.
-    - Al añadirlos: pasar `h2` a scope `test` (ver 3.9).
+Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
 
 ---
 
@@ -199,9 +156,9 @@ docker compose up --build   # prueba integrada con MySQL
     - **A)** `frontend/.dockerignore` con `node_modules` y `dist`, y `npm ci` en lugar de `npm install`.
 
 - [ ] **3.9 🟢 Restos de configuración**
-  - **Problema:** `application-test.properties` (H2) está versionado sin tests, y `h2` (scope `runtime`) acaba dentro del jar de producción. En `pom.xml`, `lombok.version` (`:31`) existe pero la versión se repite a mano (`:64`, `:124`).
+  - **Problema:** en `pom.xml`, `lombok.version` (`:31`) existe pero la versión se repite a mano (`:64`, `:139`).
   - **Solución:**
-    - **A)** `h2` → `<scope>test</scope>` (cuando existan tests, 4.1) y usar `${lombok.version}` en `:64` y `:124`.
+    - **A)** Usar `${lombok.version}` en `:64` y `:139`.
     - **B)** Si se usan Testcontainers (5.7): quitar `h2` y `application-test.properties`.
 
 ---
@@ -297,6 +254,11 @@ docker compose up --build   # prueba integrada con MySQL
   - **Solución:**
     - **A)** `npm i -D shadcn`; borrar `ui/sonner.tsx` y `npm uninstall next-themes`.
 
+- [ ] **4.14 🟢 El frontend no tiene tests**
+  - **Problema:** no hay framework de tests en `frontend/`. Los arreglos 2.10, 2.11 y 2.22 (Navbar tras el registro, interceptor de 401, `ProtectedRoute` sin `usuario`) solo se han probado a mano.
+  - **Solución:**
+    - **A)** Vitest + React Testing Library (`npm i -D vitest @testing-library/react @testing-library/jest-dom jsdom`) y un script `"test": "vitest"`. Vitest y no Jest porque reutiliza la configuración de Vite (alias `@`, TypeScript) sin Babel. Primeros tests: `ProtectedRoute` (sin token → `/login`; token sin `usuario` en ruta con rol → `/`), `Navbar` (`usuario` sin token → no muestra "Mi panel") y el interceptor de `apiService.ts` (401 en `/auth/login` no redirige).
+
 ---
 
 ## 5️⃣ Rama `chore/limpieza-spring-boot-4` — código muerto y dependencias
@@ -386,3 +348,5 @@ docker compose up --build   # prueba integrada con MySQL
 - [ ] **5.11 Hilos virtuales** (Boot 3.2, Java 21) — `spring.threads.virtual.enabled=true`.
 - [ ] **5.12 Logs estructurados en JSON** (Boot 3.4) — `logging.structured.format.console=ecs`.
 - [ ] **5.10 MFA / segundo factor** (Security 7) — `@EnableMultiFactorAuthentication` para `ROLE_ADMIN`.
+- [ ] **5.18 Tests end-to-end con Playwright** — flujos completos en un navegador real contra backend + frontend (login correcto/incorrecto, registro, acceso a `/admin` según el rol). Playwright mejor que Cypress: multi-navegador, paralelo sin pagar y `npx playwright codegen` para grabar tests. Hacer después de 4.1 y 4.14.
+- [ ] **5.19 Pipeline de CI con GitHub Actions** — `.github/workflows/ci.yml` que en cada push y PR ejecute `mvnw verify` (backend) y `npm run lint`, `npm run build` y los tests (frontend). Los runners de GitHub traen Docker, así que también sirve para Testcontainers (5.7). Con protección de rama en `main` para no fusionar con el CI en rojo.
