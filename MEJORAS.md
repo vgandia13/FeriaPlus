@@ -2,6 +2,7 @@
 
 > Recomendaciones que **no son fallos**: la aplicación funciona, pero conviene hacerlas (deuda técnica, dependencias, documentación, tests y funcionalidades nuevas).
 > Los fallos están en `ERRORES.md`. La numeración es común a los dos archivos y se conserva porque los puntos se citan entre sí.
+> Resueltas en la PR #8 (`chore/dependencies`): 3.9 (Lombok lo gestiona Spring Boot), 5.14 (jjwt 0.13.0 con la API nueva), 5.15 (Lombok 1.18.48, MapStruct 1.6.3 y `maven-compiler-plugin` de Boot) y 5.17 A (`npm update`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
 
 ## Cómo leer este archivo
@@ -13,9 +14,9 @@
 |---|---|---|
 | Tests y CI | `test/unitarios` y siguientes | 5 |
 | Eventos | `fix/eventos` | 1 |
-| Configuración | `fix/config` | 3 |
+| Configuración | `fix/config` | 2 |
 | Frontend | `fix/frontend-ui` | 5 |
-| Limpieza y dependencias | `chore/limpieza-spring-boot-4` | 11 |
+| Limpieza y dependencias | `chore/limpieza-spring-boot-4` | 9 |
 | Panel de organizador | `feature/panel-organizador` | 1 |
 | Opcionales para el TFG | sin rama | 6 |
 
@@ -27,7 +28,7 @@
   - **Problema:** los 13 tests de integración de 4.1 solo usan `"Bearer tokenfalso"` (ni siquiera tiene forma de JWT) y solo prueban los caminos de error. Hay reglas de `JwtUtils` y `UsuarioService` que ningún test toca.
   - **Solución:**
     - **A)** Por orden de importancia:
-      1. `B/security/JwtUtils.java` (JUnit solo, sin Spring ni Mockito: `new JwtUtils()` + `ReflectionTestUtils.setField(..., "JWT_SECRET", ...)`): el token guarda el id del usuario (2.16); un token bien formado pero caducado da `validateToken == false` (2.15; construirlo con `Jwts.builder()` y `setExpiration(new Date(0))`); un token firmado con otra clave da `false`.
+      1. `B/security/JwtUtils.java` (JUnit solo, sin Spring ni Mockito: `new JwtUtils()` + `ReflectionTestUtils.setField(..., "JWT_SECRET", ...)`): el token guarda el id del usuario (2.16); un token bien formado pero caducado da `validateToken == false` (2.15; construirlo con `Jwts.builder()` y `.expiration(new Date(0))`, API de jjwt 0.13); un token firmado con otra clave da `false`.
       2. `UsuarioService.actualizarPerfil` (Mockito): asignar `ROLE_ADMIN` lanza `NoAutorizadoException` y nunca llama a `save`; editar a un admin lanza `NoAutorizadoException`.
       3. `UsuarioService.actualizarPerfilPorUsername` (Mockito): con la contraseña actual correcta se guarda la nueva codificada; un email ya registrado lanza `EmailRegistradoException`.
       4. `UsuarioService.eliminarUsuario` (Mockito): sin datos sí llama a `delete`; con reservas, reseñas o asistencias lanza `UsuarioConDatosException`.
@@ -38,7 +39,7 @@
   - **Solución:**
     - **A)** Vitest + React Testing Library (`npm i -D vitest @testing-library/react @testing-library/jest-dom jsdom`) y un script `"test": "vitest"`. Vitest y no Jest porque reutiliza la configuración de Vite (alias `@`, TypeScript) sin Babel. Primeros tests: `ProtectedRoute` (sin token → `/login`; token sin `usuario` en ruta con rol → `/`), `Navbar` (`usuario` sin token → no muestra "Mi panel") y el interceptor de `apiService.ts` (401 en `/auth/login` no redirige).
 
-- [ ] **5.7 Tests con Testcontainers + `@ServiceConnection`** (Boot 3.1) y **`RestTestClient`** (Spring 7) — tests contra un MySQL real en contenedor (ver 4.1).
+- [ ] **5.7 Tests con Testcontainers + `@ServiceConnection`** (Boot 3.1) y **`RestTestClient`** (Spring 7) — tests contra un MySQL real en contenedor (ver 4.1). Al hacerlo, quitar `h2` y `application-test.properties`.
 
 - [ ] **5.18 Tests end-to-end con Playwright** — flujos completos en un navegador real contra backend + frontend (login correcto/incorrecto, registro, acceso a `/admin` según el rol). Playwright mejor que Cypress: multi-navegador, paralelo sin pagar y `npx playwright codegen` para grabar tests. Hacer después de 4.1 y 4.14.
 
@@ -67,12 +68,6 @@
   - **Solución:**
     - **A)** `update` solo en `dev`; `validate` en producción.
     - **B)** Migraciones con Flyway (`spring-boot-starter-flyway`) y `validate`. Más robusto, pero añade trabajo.
-
-- [ ] **3.9 🟢 Restos de configuración**
-  - **Problema:** en `pom.xml`, `lombok.version` (`:31`) existe pero la versión se repite a mano (`:64`, `:139`).
-  - **Solución:**
-    - **A)** Usar `${lombok.version}` en `:64` y `:139`.
-    - **B)** Si se usan Testcontainers (5.7): quitar `h2` y `application-test.properties`.
 
 ---
 
@@ -126,13 +121,8 @@
     - **A)** Primero `@Transactional(readOnly = true)` en esos métodos, luego `open-in-view=false`.
     - **B)** Además: `@EntityGraph` o `JOIN FETCH` en `EventoRepository` para resolver el N+1.
 
-- [ ] **5.14 🟢 jjwt 0.11.5 → 0.13.0**
-  - **Problema:** `B/security/JwtUtils.java` usa API obsoleta (`parserBuilder()`, `setSigningKey`, `parseClaimsJws`, `SignatureAlgorithm.HS256`).
-  - **Solución:**
-    - **A)** Subir la versión y cambiar a `Jwts.parser().verifyWith(key).build().parseSignedClaims(token)` y `.signWith(key)`.
-
 - [ ] **5.1 🟢 Filtrar `FACTOR_PASSWORD` del JWT** (Security 7)
-  - **Problema:** `B/security/JwtUtils.java:27-29` emite `"roles":"ROLE_ORGANIZADOR,FACTOR_PASSWORD"`. Hoy no tiene efecto (nadie lee el claim).
+  - **Problema:** `B/security/JwtUtils.java:29-31` emite `"roles":"ROLE_ORGANIZADOR,FACTOR_PASSWORD"`. Hoy no tiene efecto (nadie lee el claim).
   - **Solución:**
     - **A)** Filtrar las authorities que empiezan por `ROLE_`.
     - **B)** Quitar el claim `roles` (junto con `getRolesFromToken`, ver 4.10).
@@ -142,21 +132,15 @@
   - **Solución:**
     - **A)** Borrar la línea.
 
-- [ ] **5.15 🟢 Lombok 1.18.32 → 1.18.48 y MapStruct 1.5.5 → 1.6.x**
-  - **Problema:** versiones fijadas a mano en `pom.xml:31,64,107,124,134`.
-  - **Solución:**
-    - **A)** Subirlas en la propiedad y usar `${...}` en `annotationProcessorPaths` (junto con 3.9).
-
 - [ ] **5.16 🟢 `spring-boot-starter-web` → `spring-boot-starter-webmvc`**
-  - **Problema:** `pom.xml:40`; Boot 4 renombró el starter y el antiguo está obsoleto.
+  - **Problema:** `pom.xml:39`; Boot 4 renombró el starter y el antiguo está obsoleto.
   - **Solución:**
     - **A)** Cambiar el `artifactId`.
 
-- [ ] **5.17 🟢 Dependencias npm desactualizadas** (sin vulnerabilidades)
-  - **Problema:** `lucide-react` 1.8 → 1.62, `radix-ui` 1.4 → 1.8.1, `react`/`react-dom` 19.2 → 19.3.1, `tailwindcss` 4.2 → 4.3.3, etc.
+- [ ] **5.17 🟢 Versiones mayores de npm pendientes** (sin vulnerabilidades)
+  - **Problema:** las versiones menores ya están al día (`npm update` en la PR #8). Quedan las mayores, que pueden romper cosas: `eslint`/`@eslint/js` 9 → 10, `typescript` 6 → 7, `react-day-picker` 9 → 10, `@types/node` 24 → 26 (en `frontend/`) y `concurrently` 9 → 10 (en la raíz).
   - **Solución:**
-    - **A)** `npm update` en `frontend/` (dentro del rango, bajo riesgo) + lint + build.
-    - **B)** Las mayores (`eslint` 10, `typescript` 7, `react-day-picker` 10, `concurrently` 10 en la raíz), cada una aparte y probándola.
+    - **A)** Cada una en un commit aparte, leyendo sus notas de versión y comprobando con lint + build (y la app a mano en el caso de `react-day-picker`, que usa el calendario).
 
 - [ ] **5.8 🟢 Null-safety con JSpecify** (Spring 7)
   - **Problema:** nada avisa de NPE como las de 2.3 (`getRol().name()`) y 2.8 (`fecha` null) antes de ejecutar.

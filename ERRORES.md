@@ -3,7 +3,7 @@
 > Archivo versionado (desde 2026-10-26) para seguir el trabajo entre dispositivos.
 > Solo **fallos** de la aplicación (incluidos los latentes). Las recomendaciones, la deuda técnica, los tests y las funcionalidades nuevas están en `MEJORAS.md`.
 > Auditoría: 2026-10-26. Última revisión: 2026-10-27 (3ª auditoría completa: cada punto comprobado en el código y, en el backend, reproducido con el jar en H2).
-> Git: `main` = `367a07c` (PR #6, Spring Boot 4.1.2, tag `v1.0.0`). `fix/seguridad-auth` = `69d6df7` (terminada, pendiente de PR a `main`).
+> Git: `main` = `13e62a7` (PR #8, dependencias actualizadas). Tags: `v1.0.0` (Spring Boot 4.1.2) y `v1.1.0` (PR #7, rama `fix/seguridad-auth`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
 > Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.19 (opción A: handlers 400/409 con mensajes fijos; el catch-all responde "Error interno" y registra el detalle con `log.error`), 2.20, 2.2 (409 con mensaje claro si el usuario tiene eventos, reservas o reseñas), 2.1 (401 en `AuthenticationException` y 403 en `AccessDeniedException`), 2.11 (el interceptor no redirige con un 401 de `/auth/*`), 2.15 (el filtro JWT ya no corta la petición; `HttpStatusEntryPoint` da 401 en rutas protegidas), 2.10 (el registro no guarda `usuario`; la Navbar exige `isLogged`), 2.22 (`ProtectedRoute` expulsa si no hay `usuario`), 4.1 (14 tests: 13 de integración con MockMvc + H2 y 1 unitario con Mockito; `h2` en scope `test`) y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`).
 
@@ -44,7 +44,7 @@ docker compose up --build   # prueba integrada con MySQL
 
 ## 1️⃣ Rama `fix/seguridad-auth` — usuarios, admin y errores HTTP
 
-> Rama actual. Al terminar: PR a `main` → tag `v1.1.0`.
+> Fusionada en `main` (PR #7) y publicada como `v1.1.0`.
 
 Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
 
