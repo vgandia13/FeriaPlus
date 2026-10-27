@@ -127,4 +127,12 @@ public class GlobalExceptionHandler {
         body.put("message", "Conflicto con datos existentes");
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler(UsuarioConDatosException.class)
+    public ResponseEntity<Object> handleUsuarioConDatosException(UsuarioConDatosException ex){
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
 }

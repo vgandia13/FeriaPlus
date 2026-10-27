@@ -13,4 +13,6 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
     Page<Evento> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
     Page<Evento> findAll(Pageable pageable);
     List<Evento> findByAsistentes_Id(Long usuarioId);
+    boolean existsByOrganizadorId(Long usuarioId);
+    boolean existsByAsistentes_Id(Long usuarioId);
 }

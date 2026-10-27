@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import com.example.backend.DTO.UsuarioResponseDTO;
 import com.example.backend.exception.EmailRegistradoException;
 import com.example.backend.exception.NoAutorizadoException;
+import com.example.backend.exception.UsuarioConDatosException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
 import lombok.RequiredArgsConstructor;
 
@@ -173,6 +174,9 @@ public class UsuarioService {
             .orElseThrow(() -> new UsuarioNoEncontradoException("No existe usuario con ese ID"));
         if (usuario.getRol() == Rol.ROLE_ADMIN) {
             throw new NoAutorizadoException("No puedes eliminar a un administrador");
+        }
+        if(eventoRepository.existsByAsistentes_Id(id) || eventoRepository.existsByOrganizadorId(id) || reservaRepository.existsByExpositorId(id) || resenaRepository.existsByUsuarioId(id)){
+            throw new UsuarioConDatosException("No se puede eliminar: el usuario tiene eventos, reservas o reseñas");
         }
         usuarioRepository.delete(usuario);
     }
