@@ -4,7 +4,7 @@
 > Auditoría: 2026-10-26. Última revisión: 2026-10-27 (3ª auditoría completa: cada punto comprobado en el código y, en el backend, reproducido con el jar en H2).
 > Git: `main` = `367a07c` (PR #6, Spring Boot 4.1.2, tag `v1.0.0`). `fix/seguridad-auth` = `f6804b0` (1.1 + quitar `@Repository`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
-> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.20 y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`).
+> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.19 (opción A: handlers 400/409 con mensajes fijos; el catch-all responde "Error interno" y registra el detalle con `log.error`), 2.20 y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`).
 
 ## Cómo leer este archivo
 
@@ -15,7 +15,7 @@
 
 | # | Rama | Contenido | Prioridad máx. | Puntos |
 |---|---|---|---|---|
-| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 8 |
+| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 7 |
 | 2 | `fix/eventos` | Crear/editar eventos y modelo JPA | 🔴 P1 | 11 |
 | 3 | `fix/config` | Docker, actuator, perfiles, seeder | 🟠 P2 | 7 |
 | 4 | `fix/frontend-ui` | HTML base, navegación, paginación, accesibilidad | 🟠 P2 | 15 |
@@ -55,22 +55,16 @@ docker compose up --build   # prueba integrada con MySQL
     - **C)** Borrar las dependencias en cascada (desaconsejado: se pierden eventos y reseñas).
 
 - [ ] **2.1 🟠 Los errores de autenticación devuelven 500**
-  - **Problema:** `B/exception/GlobalExceptionHandler.java:41` captura todo `RuntimeException`. Un login con credenciales malas da 500 (`BadCredentialsException`, debería ser 401); un `@PreAuthorize` denegado da 500 (`AccessDeniedException`, debería ser 403).
+  - **Problema:** `B/exception/GlobalExceptionHandler.java:58` captura todo `RuntimeException`. Un login con credenciales malas da 500 (`BadCredentialsException`, debería ser 401); un `@PreAuthorize` denegado da 500 (`AccessDeniedException`, debería ser 403).
   - **Solución:**
     - **A)** Añadir `@ExceptionHandler(AuthenticationException.class)` → 401 y `@ExceptionHandler(AccessDeniedException.class)` → 403, antes del catch-all.
-    - **B)** Hacerlo directamente con `ProblemDetail` (ver 5.5), así queda resuelto también 2.19.
+    - **B)** Hacerlo directamente con `ProblemDetail` (ver 5.5).
 
 - [ ] **2.11 🟠 Un login fallido recargará la página al arreglar 2.1**
   - **Problema:** `frontend/src/services/apiService.ts:41` trata cualquier 401 como sesión caducada y hace `window.location.href = '/login'`. Cuando 2.1 devuelva 401, se perderá el toast "Error en las credenciales".
   - **Solución:**
     - **A)** Excluir de la redirección las URLs que empiezan por `/auth/` (`if (status === 401 && !error.config.url.startsWith('/auth'))`).
     - **B)** Redirigir solo si había token guardado (si no lo había, no es una sesión caducada).
-
-- [ ] **2.19 🔴 Los errores del cliente dan 500 y filtran detalles internos**
-  - **Problema:** `B/exception/GlobalExceptionHandler.java:41-47` devuelve `ex.getMessage()` con status 500 para JSON mal formado, `/api/eventos/abc`, `fecha:"xx"`, `?sort=campoInexistente` y errores de FK. El cuerpo incluye clases de Hibernate, nombres de restricciones y SQL.
-  - **Solución:**
-    - **A)** Handlers específicos → 400 para `HttpMessageNotReadableException`, `MethodArgumentTypeMismatchException`, `DateTimeParseException` y `PropertyReferenceException`; → 409 para `DataIntegrityViolationException`. En el catch-all, mensaje genérico ("Error interno") y `log.error(...)` con el detalle.
-    - **B)** Extender `ResponseEntityExceptionHandler` (Spring ya da los 400 estándar) + `ProblemDetail` (5.5).
 
 - [ ] **2.15 🟠 Un token caducado bloquea las páginas públicas**
   - **Problema:** `B/security/JwtAuthenticationFilter.java:44,48` corta la petición si el token es inválido o ha caducado, aunque la ruta sea `permitAll` (`GET /api/eventos`). Desde que 2.18 está resuelto llega un 401 y `apiService.ts:41` manda a `/login`: un visitante con un token caducado no puede ver Home ni Eventos sin volver a iniciar sesión.
