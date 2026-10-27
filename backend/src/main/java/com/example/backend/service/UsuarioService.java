@@ -10,6 +10,7 @@ import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.DTO.ResenaDTO;
 import com.example.backend.DTO.ReservaDTO;
+import com.example.backend.DTO.UsuarioAdminUpdateDTO;
 import com.example.backend.DTO.UsuarioRegistroDTO;
 import com.example.backend.DTO.DashboardDTO;
 import com.example.backend.DTO.EventoDTO;
@@ -140,7 +141,7 @@ public class UsuarioService {
         return mapToResponseDTO(updatedUsuario);
     }
 
-    public UsuarioResponseDTO actualizarPerfil(Long id, UsuarioRegistroDTO actualizacionDTO) {
+    public UsuarioResponseDTO actualizarPerfil(Long id, UsuarioAdminUpdateDTO actualizacionDTO) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
         if (!usuario.getEmail().equals(actualizacionDTO.getEmail())

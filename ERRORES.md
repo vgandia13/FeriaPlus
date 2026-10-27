@@ -4,7 +4,7 @@
 > Auditoría: 2026-10-26. Última revisión: 2026-10-27 (3ª auditoría completa: cada punto comprobado en el código y, en el backend, reproducido con el jar en H2).
 > Git: `main` = `367a07c` (PR #6, Spring Boot 4.1.2, tag `v1.0.0`). `fix/seguridad-auth` = `f6804b0` (1.1 + quitar `@Repository`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
-> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resuelto: 1.1.
+> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1 y 2.3.
 
 ## Cómo leer este archivo
 
@@ -15,7 +15,7 @@
 
 | # | Rama | Contenido | Prioridad máx. | Puntos |
 |---|---|---|---|---|
-| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 13 |
+| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 12 |
 | 2 | `fix/eventos` | Crear/editar eventos y modelo JPA | 🔴 P1 | 11 |
 | 3 | `fix/config` | Docker, actuator, perfiles, seeder | 🟠 P2 | 8 |
 | 4 | `fix/frontend-ui` | HTML base, navegación, paginación, accesibilidad | 🟠 P2 | 15 |
@@ -46,14 +46,6 @@ docker compose up --build   # prueba integrada con MySQL
 ## 1️⃣ Rama `fix/seguridad-auth` — usuarios, admin y errores HTTP
 
 > Rama actual. Al terminar: PR a `main` → tag `v1.1.0`.
-
-- [ ] **2.3 🔴 El admin puede dejar rol, email o nombre a `null`**
-  - **Problema:** `B/service/UsuarioService.java:150-152` copia los campos sin comprobar nada, y el `PUT` de `B/controller/AdminController.java:54` no lleva `@Valid`. Sin `rol`, el login de ese usuario da 500 (NPE en `B/security/UserDetailsServiceImpl.java:31`). Sin `email`, se guarda `null` y la cuenta queda inaccesible. `AdminEditForm.tsx:67-87` tampoco marca nombre y email como `required`.
-  - **Solución:**
-    - **A)** Crear `UsuarioAdminUpdateDTO` (nombre, email, rol con `@NotBlank`/`@Email`/`@NotNull`, **sin** password) y usarlo con `@Valid` en el `PUT`.
-    - **B)** Validar en el servicio: si `rol`, `email` o `nombre` vienen vacíos, lanzar una excepción → 400.
-    - ⚠️ **No** basta con poner `@Valid` sobre `UsuarioRegistroDTO`: `AdminEditForm.tsx:48` no envía `password` y el `@NotBlank` rompería la edición.
-    - En el frontend: añadir `required` a los `Input` de nombre y email.
 
 - [ ] **2.20 🔴 El admin puede editarse, degradarse o borrarse a sí mismo**
   - **Problema:** `B/service/UsuarioService.java:152,158` y `frontend/src/pages/AdminPage.tsx:225-283`. Borrar su propio id da 204 y puede dejar el sistema sin ningún ADMIN. Si cambia su email o su rol, su sesión queda incoherente.

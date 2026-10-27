@@ -66,6 +66,7 @@ const AdminEditForm = ({
         <Label htmlFor="name">Nombre:</Label>
         <Input
           type="text"
+          required
           id="name"
           name="name"
           value={updateUser?.nombre || ""}
@@ -78,6 +79,7 @@ const AdminEditForm = ({
         <Label htmlFor="email">Correo:</Label>
         <Input
           type="email"
+          required
           id="email"
           name="email"
           value={updateUser?.email || ""}
