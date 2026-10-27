@@ -11,21 +11,21 @@ El proyecto se basa en una arquitectura desacoplada entre cliente y servidor med
 ### Backend
 
 - **Java 21** como lenguaje principal.
-- **Spring Boot 3.4.1** para el desarrollo del núcleo de la API.
-- **Spring Security & JWT (JJWT 0.11.5)**: Autenticación stateless mediante tokens.
-- **Spring Data JPA + Hibernate 6**: Gestión de la persistencia de datos.
+- **Spring Boot 4.1.2** para el desarrollo del núcleo de la API.
+- **Spring Security & JWT (JJWT 0.13.0)**: Autenticación stateless mediante tokens.
+- **Spring Data JPA + Hibernate 7**: Gestión de la persistencia de datos.
 - **MySQL 8.0**: Base de datos relacional para producción.
 - **H2 Database**: Base de datos en memoria para entornos de test.
-- **MapStruct 1.5.5**: Mapeo entre entidades y DTOs.
+- **MapStruct 1.6.3**: Mapeo entre entidades y DTOs.
 - **Lombok**: Reducción de código repetitivo.
-- **SpringDoc OpenAPI 2.3.0**: Documentación automática de la API (Swagger UI).
+- **SpringDoc OpenAPI 3.2.0**: Documentación automática de la API (Swagger UI).
 - **Maven**: Gestor de dependencias y construcción.
 
 ### Frontend
 
 - **React 19** con **Vite 8** para una experiencia de usuario rápida y moderna.
 - **TypeScript**: Tipado estático para un desarrollo más robusto.
-- **Tailwind CSS 4.0**: Framework de utilidades CSS para el diseño.
+- **Tailwind CSS 4**: Framework de utilidades CSS para el diseño.
 - **Shadcn UI + Radix UI**: Componentes de interfaz accesibles y personalizables.
 - **React Router 7**: Gestión de navegación Single Page Application (SPA).
 - **Axios**: Cliente HTTP para el consumo de la API REST.

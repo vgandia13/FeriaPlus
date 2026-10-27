@@ -3,9 +3,10 @@ package com.example.backend.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
-import java.security.Key;
 import java.util.Date;
 import java.util.stream.Collectors;
+
+import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -18,7 +19,7 @@ public class JwtUtils {
     @Value("${jwt.secret}")
     private String JWT_SECRET;
 
-    private Key getSigningKey() {
+    private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(JWT_SECRET.getBytes());
     }
 
@@ -30,37 +31,40 @@ public class JwtUtils {
                 .collect(Collectors.joining(","));
 
         return Jwts.builder()
-                .setSubject(String.valueOf(usuarioId))
+                .subject(String.valueOf(usuarioId))
                 .claim("roles", roles)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + JWT_EXPIRATION_MS))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .issuedAt(new Date())
+                .expiration(new Date((new Date()).getTime() + JWT_EXPIRATION_MS))
+                .signWith(getSigningKey())
                 .compact();
     }
 
     // Método para leer quién es el dueño del token
     public Long getUsuarioIdFromToken(String token) {
-        return Long.valueOf(Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        return Long.valueOf(Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
+                .parseSignedClaims(token)
+                .getPayload()
                 .getSubject());
     }
 
     public String getRolesFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        Claims claims = Jwts.parser()
+                            .verifyWith(getSigningKey())
+                            .build()
+                            .parseSignedClaims(token)
+                            .getPayload();
         return claims.get("roles", String.class);
     }
 
     // Método para verificar si el token es válido o ha sido manipulado
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
+            Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token);
             return true;
         } catch (JwtException e) {
             // Aquí podrías loguear si el token ha expirado o es falso
