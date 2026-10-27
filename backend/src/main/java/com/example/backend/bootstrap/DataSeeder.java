@@ -41,26 +41,26 @@ public class DataSeeder implements CommandLineRunner {
                         // 1. Crear un usuario organizador (Requisito por la relación @ManyToOne)
                         Usuario organizador = new Usuario();
                         organizador.setNombre("Ayuntamiento Test");
-                        organizador.setEmail("admin@feriaplus.com");
-                        organizador.setPassword(passwordEncoder.encode("123456"));
+                        organizador.setEmail("organizador@gmail.com");
+                        organizador.setPassword(passwordEncoder.encode("12345678"));
                         organizador.setRol(Rol.ROLE_ORGANIZADOR);
 
                         Usuario admin = new Usuario();
                         admin.setNombre("Victor");
                         admin.setEmail("admin@gmail.com");
-                        admin.setPassword(passwordEncoder.encode("123456"));
+                        admin.setPassword(passwordEncoder.encode("12345678"));
                         admin.setRol(Rol.ROLE_ADMIN);
 
                         Usuario visitante = new Usuario();
                         visitante.setNombre("Carlos Visitante");
                         visitante.setEmail("carlos@gmail.com");
-                        visitante.setPassword(passwordEncoder.encode("123456"));
+                        visitante.setPassword(passwordEncoder.encode("12345678"));
                         visitante.setRol(Rol.ROLE_VISITANTE);
 
                         Usuario expositor = new Usuario();
                         expositor.setNombre("Artesanías Paco");
                         expositor.setEmail("paco@artesania.com");
-                        expositor.setPassword(passwordEncoder.encode("123456"));
+                        expositor.setPassword(passwordEncoder.encode("12345678"));
                         expositor.setRol(Rol.ROLE_EXPOSITOR);
 
                         usuarioRepository.save(visitante);

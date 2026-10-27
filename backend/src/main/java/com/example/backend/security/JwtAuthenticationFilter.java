@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -17,11 +16,11 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final UserDetailsService userDetailsService;
+    private final UserDetailsServiceImpl userDetailsService;
     private final JwtUtils jwtUtils;
 
     // Inyectamos nuestras herramientas
-    public JwtAuthenticationFilter(JwtUtils jwtUtils, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
     }
@@ -34,13 +33,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Obtener el token del header "Authorization"
         String header = request.getHeader("Authorization");
         String token = null;
-        String email = null;
+        Long usuarioId = null;
 
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7); // Quitamos "Bearer " para quedarnos solo con el código
             try {
                 if (jwtUtils.validateToken(token)) {
-                    email = jwtUtils.getEmailFromToken(token);
+                    usuarioId = jwtUtils.getUsuarioIdFromToken(token);
                 } else {
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
                     return;
@@ -51,10 +50,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        // Si hay email y el usuario no está ya autenticado en esta petición...
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        // Si hay id y el usuario no está ya autenticado en esta petición...
+        if (usuarioId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                UserDetails userDetails = userDetailsService.loadUserById(usuarioId);
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails,

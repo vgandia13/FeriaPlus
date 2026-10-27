@@ -4,7 +4,7 @@
 > Auditoría: 2026-10-26. Última revisión: 2026-10-27 (3ª auditoría completa: cada punto comprobado en el código y, en el backend, reproducido con el jar en H2).
 > Git: `main` = `367a07c` (PR #6, Spring Boot 4.1.2, tag `v1.0.0`). `fix/seguridad-auth` = `f6804b0` (1.1 + quitar `@Repository`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
-> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 2.3 y 2.20.
+> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.20 y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`).
 
 ## Cómo leer este archivo
 
@@ -15,9 +15,9 @@
 
 | # | Rama | Contenido | Prioridad máx. | Puntos |
 |---|---|---|---|---|
-| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 11 |
+| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 8 |
 | 2 | `fix/eventos` | Crear/editar eventos y modelo JPA | 🔴 P1 | 11 |
-| 3 | `fix/config` | Docker, actuator, perfiles, seeder | 🟠 P2 | 8 |
+| 3 | `fix/config` | Docker, actuator, perfiles, seeder | 🟠 P2 | 7 |
 | 4 | `fix/frontend-ui` | HTML base, navegación, paginación, accesibilidad | 🟠 P2 | 15 |
 | 5 | `chore/limpieza-spring-boot-4` | Código muerto y dependencias | 🟢 P4 | 12 |
 | 6 | `feature/panel-organizador` | Funcionalidad pendiente | — | 1 |
@@ -48,23 +48,11 @@ docker compose up --build   # prueba integrada con MySQL
 > Rama actual. Al terminar: PR a `main` → tag `v1.1.0`.
 
 - [ ] **2.2 🟠 Borrar un usuario con reseñas, reservas, asistencias o eventos da 500**
-  - **Problema:** `B/service/UsuarioService.java:172`. Las FK sin cascada provocan `DataIntegrityViolationException`, que llega como 500.
+  - **Problema:** `B/service/UsuarioService.java:177`. Las FK sin cascada provocan `DataIntegrityViolationException`, que llega como 500.
   - **Solución:**
     - **A)** Comprobar las dependencias antes de borrar y responder **409** con un mensaje claro ("el usuario tiene eventos/reservas").
     - **B)** Borrado lógico: un campo `activo=false` en lugar de `delete`.
     - **C)** Borrar las dependencias en cascada (desaconsejado: se pierden eventos y reseñas).
-
-- [ ] **1.7 🔴 Cambiar la contraseña no pide la actual**
-  - **Problema:** `B/service/UsuarioService.java:133-135` (`PUT /perfil/me`). Con un JWT robado (válido 24 h) se puede cambiar la contraseña y quedarse la cuenta.
-  - **Solución:**
-    - **A)** Añadir `passwordActual` al DTO de actualización y comprobarlo con `passwordEncoder.matches(...)` antes de cambiarla.
-    - **B)** Además (opcional): guardar `passwordChangedAt` en `Usuario` y rechazar en `JwtAuthenticationFilter` los tokens con `iat` anterior.
-
-- [ ] **2.18 🟠 `/error` no es público: todo error llega como 403 vacío**
-  - **Problema:** `B/security/SecurityConfig.java:38-44`. Cuando Spring reenvía a `/error`, un anónimo recibe 403: token inválido → 403 (no 401), ruta inexistente → 403 (no 404), método no soportado → 403 (no 405). Es la causa de fondo de 2.11, 2.15 y 2.16: **arreglar antes que ellos**.
-  - **Solución:**
-    - **A)** `.requestMatchers("/error").permitAll()` en `SecurityConfig`.
-    - **B)** `.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()` (cubre cualquier ruta de error).
 
 - [ ] **2.1 🟠 Los errores de autenticación devuelven 500**
   - **Problema:** `B/exception/GlobalExceptionHandler.java:41` captura todo `RuntimeException`. Un login con credenciales malas da 500 (`BadCredentialsException`, debería ser 401); un `@PreAuthorize` denegado da 500 (`AccessDeniedException`, debería ser 403).
@@ -85,7 +73,7 @@ docker compose up --build   # prueba integrada con MySQL
     - **B)** Extender `ResponseEntityExceptionHandler` (Spring ya da los 400 estándar) + `ProblemDetail` (5.5).
 
 - [ ] **2.15 🟠 Un token caducado bloquea las páginas públicas**
-  - **Problema:** `B/security/JwtAuthenticationFilter.java:45,49` corta la petición si el token es inválido o ha caducado, aunque la ruta sea `permitAll` (`GET /api/eventos`). Por 2.18 el cliente recibe un 403 vacío y `apiService.ts:41` no redirige: Home y Eventos fallan sin más.
+  - **Problema:** `B/security/JwtAuthenticationFilter.java:44,48` corta la petición si el token es inválido o ha caducado, aunque la ruta sea `permitAll` (`GET /api/eventos`). Desde que 2.18 está resuelto llega un 401 y `apiService.ts:41` manda a `/login`: un visitante con un token caducado no puede ver Home ni Eventos sin volver a iniciar sesión.
   - **Solución:**
     - **A)** Si el token no es válido, no responder: llamar a `filterChain.doFilter(...)` sin autenticar y dejar que `SecurityConfig` decida (las rutas protegidas darán 401 por sí solas).
     - **B)** Frontend (complementario): al recibir 401/403 con token caducado, borrar el token y reintentar la petición sin él.
@@ -103,17 +91,10 @@ docker compose up --build   # prueba integrada con MySQL
     - **A)** `if (allowedRoles && (!usuario || !allowedRoles.includes(usuario.rol)))`.
     - **B)** Además: si hay token pero no `usuario`, hacer logout en `AppContext`.
 
-- [ ] **2.16 🟠 `PUT /perfil/me`: cambiar el email invalida la sesión y acepta emails vacíos**
-  - **Problema:** `B/service/UsuarioService.java:120-125`. El JWT lleva el email antiguo como `subject`, así que la siguiente petición falla. `UsuarioController.java:31` no lleva `@Valid`: acepta `email:""`, y después se puede hacer login con email vacío (el login tampoco valida). Un email mal formado da 500. (El frontend aún no usa este endpoint.)
-  - **Solución:**
-    - **A)** DTO de actualización propio (`@NotBlank @Email`) con `@Valid`, también en el login. Si el email cambia, devolver un token nuevo en la respuesta.
-    - **B)** Usar el **id** del usuario como `subject` del JWT, en vez del email (cambiar el email deja de afectar al token).
-    - **C)** No permitir cambiar el email desde el perfil.
-
 - [ ] **4.1 🟢 Cero tests** (empezar en esta rama)
   - **Problema:** no existe `backend/src/test` ni `spring-boot-starter-test`.
   - **Solución:**
-    - **A)** Añadir `spring-boot-starter-test` y escribir tests de integración de lo arreglado aquí: login correcto/incorrecto (401), registro con `ROLE_ADMIN` (403), `PUT` de admin sin rol (400), admin editando o borrando a un admin (403).
+    - **A)** Añadir `spring-boot-starter-test` y escribir tests de integración de lo arreglado aquí: login correcto/incorrecto (401), registro con `ROLE_ADMIN` (403), `PUT` de admin sin rol (400), admin editando o borrando a un admin (403), cambio de contraseña con la actual incorrecta (403).
     - **B)** Hacerlo con Testcontainers + MySQL real (5.7). Requiere Docker en marcha al ejecutar `mvnw verify`.
     - Al añadirlos: pasar `h2` a scope `test` (ver 3.9).
 
@@ -140,7 +121,7 @@ docker compose up --build   # prueba integrada con MySQL
     - **B)** Si se quieren crear ubicaciones al vuelo: si viene sin id, guardarla antes con `ubicacionRepository.save(...)`.
 
 - [ ] **4.8 🟢 Tipos TS desalineados con el backend** (hacer junto con 1.4)
-  - **Problema:** `frontend/src/types/UsuarioResponseDTO.ts:4` y `UbicacionDTO.ts:4` declaran `id: string` (en el backend `UbicacionDTO.java:9` también es `String`); `UbicacionDTO.ts:8` exige `eventos`, que llega `null`; `DashboardDTO.ts:22` tipa los puestos con `descripcion`, pero `B/service/UsuarioService.java:106-107` mete ahí las `dimensiones`; `EventoDTO.ts:12` exige `organizadorId`, que desaparecerá con 1.4.
+  - **Problema:** `frontend/src/types/UsuarioResponseDTO.ts:4` y `UbicacionDTO.ts:4` declaran `id: string` (en el backend `UbicacionDTO.java:9` también es `String`); `UbicacionDTO.ts:8` exige `eventos`, que llega `null`; `DashboardDTO.ts:22` tipa los puestos con `descripcion`, pero `B/service/UsuarioService.java:109` mete ahí las `dimensiones`; `EventoDTO.ts:12` exige `organizadorId`, que desaparecerá con 1.4.
   - **Solución:**
     - **A)** Corregir a mano: `id: number` en ambos lados (`Long` en Java), `eventos?:` opcional, renombrar a `dimensiones` en `PuestoDTO` y quitar `organizadorId` del tipo de entrada.
     - **B)** Generar los tipos desde el OpenAPI de springdoc (`openapi-typescript`). Evita que se vuelvan a desalinear, pero añade una dependencia.
@@ -152,13 +133,13 @@ docker compose up --build   # prueba integrada con MySQL
     - **B)** Además: un `ErrorBoundary` en `MainLayout`, para que un fallo de render no deje toda la app en blanco.
 
 - [ ] **2.8 🟠 NPE en el dashboard si `fecha` es null**
-  - **Problema:** `B/service/UsuarioService.java:95`.
+  - **Problema:** `B/service/UsuarioService.java:97`.
   - **Solución:**
     - **A)** Copiar el patrón de `EventoService.java:76` (`fecha != null ? fecha.toString() : null`).
     - **B)** Hacer `fecha` obligatoria (`@Column(nullable = false)` + `@NotNull` en el DTO).
 
 - [ ] **2.17 🟠 El dashboard se queda en "Cargando…" si falla la petición**
-  - **Problema:** `frontend/src/pages/DashboardPage.tsx:21-26` no tiene `try/catch`. Además, `formatDate` (`:6-15`) añade la hora: `"2026-10-31"` sale como `31/10/2026, 01:00`.
+  - **Problema:** `frontend/src/pages/DashboardPage.tsx:32-39` no tiene `try/catch`. Además, `formatDate` (`:17-26`) añade la hora: `"2026-10-31"` sale como `31/10/2026, 01:00`.
   - **Solución:**
     - **A)** `try/catch/finally` con un estado `error` y un mensaje en pantalla; `formatDate` solo con día/mes/año y `parseISO` (ver 2.24).
 
@@ -222,12 +203,6 @@ docker compose up --build   # prueba integrada con MySQL
   - **Problema:** `frontend/Dockerfile:5-6` hace `npm install` y luego `COPY . .`, que copia el `node_modules/` de Windows encima del de Linux (binarios nativos de rolldown, `@tailwindcss/oxide`, lightningcss).
   - **Solución:**
     - **A)** `frontend/.dockerignore` con `node_modules` y `dist`, y `npm ci` en lugar de `npm install`.
-
-- [ ] **3.5 🟢 Seeder con contraseñas débiles y emails confusos**
-  - **Problema:** `B/bootstrap/DataSeeder.java:42-64`. Todas las contraseñas son `123456`, `admin@feriaplus.com` es ORGANIZADOR y el admin real es `admin@gmail.com`.
-  - **Solución:**
-    - **A)** Renombrar los emails según el rol (`organizador@feriaplus.com`, `admin@feriaplus.com`…) y usar contraseñas de ≥ 8 caracteres (coherente con la validación del registro).
-    - **B)** Ejecutar el seeder solo en el perfil `dev` (`@Profile("dev")`).
 
 - [ ] **3.9 🟢 Restos de configuración**
   - **Problema:** `application-test.properties` (H2) está versionado sin tests, y `h2` (scope `runtime`) acaba dentro del jar de producción. En `pom.xml`, `lombok.version` (`:31`) existe pero la versión se repite a mano (`:64`, `:124`).

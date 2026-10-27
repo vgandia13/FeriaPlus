@@ -10,6 +10,7 @@ import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.DTO.ResenaDTO;
 import com.example.backend.DTO.ReservaDTO;
+import com.example.backend.DTO.UsuarioActualizacionDTO;
 import com.example.backend.DTO.UsuarioAdminUpdateDTO;
 import com.example.backend.DTO.UsuarioRegistroDTO;
 import com.example.backend.DTO.DashboardDTO;
@@ -113,7 +114,7 @@ public class UsuarioService {
 
     // Método para que el usuario actualice su propio perfil (sin poder cambiar su
     // rol)
-    public UsuarioResponseDTO actualizarPerfilPorUsername(String email, UsuarioRegistroDTO actualizacionDTO) {
+    public UsuarioResponseDTO actualizarPerfilPorUsername(String email, UsuarioActualizacionDTO actualizacionDTO) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
 
@@ -131,8 +132,12 @@ public class UsuarioService {
         }
 
         // 3. Actualización de contraseña (solo si se envía una nueva)
-        if (actualizacionDTO.getPassword() != null && !actualizacionDTO.getPassword().isBlank()) {
-            usuario.setPassword(passwordEncoder.encode(actualizacionDTO.getPassword()));
+        if (actualizacionDTO.getNewPassword() != null && !actualizacionDTO.getNewPassword().isBlank()) {
+            if (actualizacionDTO.getOldPassword() == null
+                || !passwordEncoder.matches(actualizacionDTO.getOldPassword(), usuario.getPassword())) {
+                throw new NoAutorizadoException("La contraseña actual no es correcta");
+            }
+            usuario.setPassword(passwordEncoder.encode(actualizacionDTO.getNewPassword()));
         }
 
         // IMPORTANTE: No incluimos usuario.setRol() aquí por seguridad.

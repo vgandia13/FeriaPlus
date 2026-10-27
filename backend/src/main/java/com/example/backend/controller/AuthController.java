@@ -33,13 +33,13 @@ public class AuthController {
     private final UsuarioService usuarioService;
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequestDTO loginRequest) {
+    public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
-        String token = jwtUtils.generateToken(authentication);
-
         UsuarioResponseDTO usuario = usuarioService.obtenerUsuarioPorEmail(loginRequest.getEmail());
+
+        String token = jwtUtils.generateToken(authentication, usuario.getId());
 
         Map<String, Object> usuarioMap = new HashMap<>();
         usuarioMap.put("name", usuario.getNombre());

@@ -7,9 +7,11 @@ import lombok.RequiredArgsConstructor;
 import java.security.Principal;
 
 import com.example.backend.DTO.DashboardDTO;
-import com.example.backend.DTO.UsuarioRegistroDTO;
+import com.example.backend.DTO.UsuarioActualizacionDTO;
 import com.example.backend.DTO.UsuarioResponseDTO;
 import com.example.backend.service.UsuarioService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/perfil")
@@ -28,7 +30,7 @@ public class UsuarioController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UsuarioResponseDTO> actualizarMiPerfil(
             Principal principal,
-            @RequestBody UsuarioRegistroDTO actualizacionDTO) {
+            @Valid @RequestBody UsuarioActualizacionDTO actualizacionDTO) {
             
         String email = principal.getName();
         return ResponseEntity.ok(usuarioService.actualizarPerfilPorUsername(email, actualizacionDTO));

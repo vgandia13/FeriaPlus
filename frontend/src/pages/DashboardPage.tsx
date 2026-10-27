@@ -2,6 +2,17 @@ import { userService } from "@/services/userService";
 import { useEffect, useState } from "react";
 import { DashboardDTO } from "@/types/DashboardDTO";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import ProfileEditForm from "./ProfileEditForm";
 
 export const formatDate = (ISOdate?: string) =>
   ISOdate
@@ -16,6 +27,7 @@ export const formatDate = (ISOdate?: string) =>
 
 const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState<DashboardDTO>();
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -39,9 +51,36 @@ const DashboardPage = () => {
         </CardHeader>
         <CardContent className="p-6 space-y-8">
           <section>
-            <h2 className="text-xl font-semibold mb-3 border-b pb-2">
-              Información de usuario
-            </h2>
+            <div className="flex items-center justify-between mb-3 border-b pb-2">
+              <h2 className="text-xl font-semibold">Información de usuario</h2>
+              <Dialog open={editOpen} onOpenChange={setEditOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="secondary">Editar perfil</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Editar perfil</DialogTitle>
+                    <DialogDescription>
+                      Para cambiar la contraseña tienes que indicar la actual.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <ProfileEditForm
+                    user={dashboardData.usuario}
+                    onSuccess={async () => {
+                      setEditOpen(false);
+                      setDashboardData(await userService.getDashboardData());
+                    }}
+                    BotonCancelar={
+                      <DialogClose asChild>
+                        <Button type="button" variant="outline">
+                          Cancelar
+                        </Button>
+                      </DialogClose>
+                    }
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
             <div className="grid md:grid-cols-2 gap-4">
               <p>
                 <span className="font-semibold">Nombre:</span>{" "}
