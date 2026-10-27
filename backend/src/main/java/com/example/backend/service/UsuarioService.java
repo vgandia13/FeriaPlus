@@ -50,9 +50,9 @@ public class UsuarioService {
     public Page<UsuarioResponseDTO> listarUsuarios(String nombre, Pageable pageable) {
         Page<Usuario> usuarios;
         if (nombre != null && !nombre.isBlank()) {
-            usuarios = usuarioRepository.findByNombreContainingIgnoreCase(nombre, pageable);
+            usuarios = usuarioRepository.findByNombreContainingIgnoreCaseAndRolNot(nombre, Rol.ROLE_ADMIN, pageable);
         } else {
-            usuarios = usuarioRepository.findAll(pageable);
+            usuarios = usuarioRepository.findByRolNot(Rol.ROLE_ADMIN, pageable);
         }
         return usuarios.map(this::mapToResponseDTO);
     }
@@ -144,6 +144,13 @@ public class UsuarioService {
     public UsuarioResponseDTO actualizarPerfil(Long id, UsuarioAdminUpdateDTO actualizacionDTO) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
+        // Un admin no puede editar a ningún admin, tampoco a sí mismo
+        if (usuario.getRol() == Rol.ROLE_ADMIN) {
+            throw new NoAutorizadoException("No puedes modificar a un administrador");
+        }
+        if (actualizacionDTO.getRol() == Rol.ROLE_ADMIN) {
+            throw new NoAutorizadoException("No puedes asignar el rol de administrador");
+        }
         if (!usuario.getEmail().equals(actualizacionDTO.getEmail())
                 && usuarioRepository.existsByEmail(actualizacionDTO.getEmail())) {
             throw new EmailRegistradoException("El email ya está registrado");
@@ -157,7 +164,12 @@ public class UsuarioService {
     }
 
     public void eliminarUsuario(Long id) {
-        usuarioRepository.deleteById(id);
+        Usuario usuario = usuarioRepository.findById(id)
+            .orElseThrow(() -> new UsuarioNoEncontradoException("No existe usuario con ese ID"));
+        if (usuario.getRol() == Rol.ROLE_ADMIN) {
+            throw new NoAutorizadoException("No puedes eliminar a un administrador");
+        }
+        usuarioRepository.delete(usuario);
     }
 
     private UsuarioResponseDTO mapToResponseDTO(Usuario usuario) {

@@ -101,7 +101,6 @@ const AdminEditForm = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ROLE_VISITANTE">Visitante</SelectItem>
-            <SelectItem value="ROLE_ADMIN">Administrador</SelectItem>
             <SelectItem value="ROLE_ORGANIZADOR">Organizador</SelectItem>
             <SelectItem value="ROLE_EXPOSITOR">Expositor</SelectItem>
           </SelectContent>

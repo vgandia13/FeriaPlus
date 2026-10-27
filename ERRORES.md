@@ -4,7 +4,7 @@
 > Auditoría: 2026-10-26. Última revisión: 2026-10-27 (3ª auditoría completa: cada punto comprobado en el código y, en el backend, reproducido con el jar en H2).
 > Git: `main` = `367a07c` (PR #6, Spring Boot 4.1.2, tag `v1.0.0`). `fix/seguridad-auth` = `f6804b0` (1.1 + quitar `@Repository`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
-> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1 y 2.3.
+> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 2.3 y 2.20.
 
 ## Cómo leer este archivo
 
@@ -15,7 +15,7 @@
 
 | # | Rama | Contenido | Prioridad máx. | Puntos |
 |---|---|---|---|---|
-| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 12 |
+| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 11 |
 | 2 | `fix/eventos` | Crear/editar eventos y modelo JPA | 🔴 P1 | 11 |
 | 3 | `fix/config` | Docker, actuator, perfiles, seeder | 🟠 P2 | 8 |
 | 4 | `fix/frontend-ui` | HTML base, navegación, paginación, accesibilidad | 🟠 P2 | 15 |
@@ -47,14 +47,8 @@ docker compose up --build   # prueba integrada con MySQL
 
 > Rama actual. Al terminar: PR a `main` → tag `v1.1.0`.
 
-- [ ] **2.20 🔴 El admin puede editarse, degradarse o borrarse a sí mismo**
-  - **Problema:** `B/service/UsuarioService.java:152,158` y `frontend/src/pages/AdminPage.tsx:225-283`. Borrar su propio id da 204 y puede dejar el sistema sin ningún ADMIN. Si cambia su email o su rol, su sesión queda incoherente.
-  - **Solución:**
-    - **A)** Backend: en `actualizarPerfil` y `eliminarUsuario`, comparar el id con el usuario autenticado y rechazar con 409 (o 403). Además, rechazar si se degrada o borra al **último** ADMIN (`usuarioRepository.countByRol(Rol.ROLE_ADMIN) == 1`).
-    - **B)** Frontend (complementario): ocultar Editar/Eliminar cuando `user.email === usuario?.email`.
-
 - [ ] **2.2 🟠 Borrar un usuario con reseñas, reservas, asistencias o eventos da 500**
-  - **Problema:** `B/service/UsuarioService.java:159`. Las FK sin cascada provocan `DataIntegrityViolationException`, que llega como 500.
+  - **Problema:** `B/service/UsuarioService.java:172`. Las FK sin cascada provocan `DataIntegrityViolationException`, que llega como 500.
   - **Solución:**
     - **A)** Comprobar las dependencias antes de borrar y responder **409** con un mensaje claro ("el usuario tiene eventos/reservas").
     - **B)** Borrado lógico: un campo `activo=false` en lugar de `delete`.
@@ -119,7 +113,7 @@ docker compose up --build   # prueba integrada con MySQL
 - [ ] **4.1 🟢 Cero tests** (empezar en esta rama)
   - **Problema:** no existe `backend/src/test` ni `spring-boot-starter-test`.
   - **Solución:**
-    - **A)** Añadir `spring-boot-starter-test` y escribir tests de integración de lo arreglado aquí: login correcto/incorrecto (401), registro con `ROLE_ADMIN` (403), `PUT` de admin sin rol (400), admin borrándose (409).
+    - **A)** Añadir `spring-boot-starter-test` y escribir tests de integración de lo arreglado aquí: login correcto/incorrecto (401), registro con `ROLE_ADMIN` (403), `PUT` de admin sin rol (400), admin editando o borrando a un admin (403).
     - **B)** Hacerlo con Testcontainers + MySQL real (5.7). Requiere Docker en marcha al ejecutar `mvnw verify`.
     - Al añadirlos: pasar `h2` a scope `test` (ver 3.9).
 
@@ -263,7 +257,7 @@ docker compose up --build   # prueba integrada con MySQL
     - **B)** Extraer un componente `Paginacion` común a las dos páginas (incluye el arreglo de teclado de 4.7).
 
 - [ ] **2.12 🟡 Panel admin: "Limpiar" no hace nada y el diálogo se cierra por accidente**
-  - **Problema:** `frontend/src/pages/AdminEditForm.tsx:109` usa `type="reset"`, que no afecta a inputs controlados. En `AdminPage.tsx:273` el diálogo solo se cierra porque `loadUsers` desmonta la fila; el foco se pierde.
+  - **Problema:** `frontend/src/pages/AdminEditForm.tsx:110` usa `type="reset"`, que no afecta a inputs controlados. En `AdminPage.tsx:273` el diálogo solo se cierra porque `loadUsers` desmonta la fila; el foco se pierde.
   - **Solución:**
     - **A)** "Limpiar" con `onClick` que restaure el estado inicial; `<Dialog open={editando} onOpenChange={setEditando}>` y cerrar en `onSuccess`.
     - **B)** Quitar el botón "Limpiar" (en un formulario de edición, "Cancelar" ya cumple esa función).
