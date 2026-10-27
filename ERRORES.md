@@ -1,8 +1,9 @@
 # Errores a corregir — Feria+
 
 > Archivo versionado (desde 2026-10-26) para seguir el trabajo entre dispositivos.
+> Solo **fallos** de la aplicación (incluidos los latentes). Las recomendaciones, la deuda técnica, los tests y las funcionalidades nuevas están en `MEJORAS.md`.
 > Auditoría: 2026-10-26. Última revisión: 2026-10-27 (3ª auditoría completa: cada punto comprobado en el código y, en el backend, reproducido con el jar en H2).
-> Git: `main` = `367a07c` (PR #6, Spring Boot 4.1.2, tag `v1.0.0`). `fix/seguridad-auth` = `f6804b0` (1.1 + quitar `@Repository`).
+> Git: `main` = `367a07c` (PR #6, Spring Boot 4.1.2, tag `v1.0.0`). `fix/seguridad-auth` = `69d6df7` (terminada, pendiente de PR a `main`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
 > Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.19 (opción A: handlers 400/409 con mensajes fijos; el catch-all responde "Error interno" y registra el detalle con `log.error`), 2.20, 2.2 (409 con mensaje claro si el usuario tiene eventos, reservas o reseñas), 2.1 (401 en `AuthenticationException` y 403 en `AccessDeniedException`), 2.11 (el interceptor no redirige con un 401 de `/auth/*`), 2.15 (el filtro JWT ya no corta la petición; `HttpStatusEntryPoint` da 401 en rutas protegidas), 2.10 (el registro no guarda `usuario`; la Navbar exige `isLogged`), 2.22 (`ProtectedRoute` expulsa si no hay `usuario`), 4.1 (14 tests: 13 de integración con MockMvc + H2 y 1 unitario con Mockito; `h2` en scope `test`) y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`).
 
@@ -10,18 +11,16 @@
 
 - Cada apartado es **una rama**, en el orden en que conviene trabajarlas. Dentro de cada rama, los puntos van en orden de arreglo.
 - Prioridad: 🔴 **P1** seguridad / pérdida de datos · 🟠 **P2** rompe un flujo visible · 🟡 **P3** bug menor de UI/UX · 🟢 **P4** configuración / deuda.
-- Los números (1.x seguridad, 2.x bugs, 3.x config, 4.x calidad, 5.x mejoras) se conservan porque se citan entre sí.
+- Los números (1.x seguridad, 2.x bugs, 3.x config, 4.x calidad, 5.x mejoras) son comunes con `MEJORAS.md` y se conservan porque se citan entre sí.
 - Cada punto tiene **Problema** y **Solución**. Si hay varias opciones, la **A** es la recomendada.
 
 | # | Rama | Contenido | Prioridad máx. | Puntos |
 |---|---|---|---|---|
 | 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 0 |
-| 2 | `fix/eventos` | Crear/editar eventos y modelo JPA | 🔴 P1 | 11 |
-| 3 | `fix/config` | Docker, actuator, perfiles, seeder | 🟠 P2 | 7 |
-| 4 | `fix/frontend-ui` | HTML base, navegación, paginación, accesibilidad | 🟠 P2 | 16 |
-| 5 | `chore/limpieza-spring-boot-4` | Código muerto y dependencias | 🟢 P4 | 12 |
-| 6 | `feature/panel-organizador` | Funcionalidad pendiente | — | 1 |
-| — | Sin rama | Mejoras opcionales para el TFG | — | 9 |
+| 2 | `fix/eventos` | Crear/editar eventos y modelo JPA | 🔴 P1 | 10 |
+| 3 | `fix/config` | Docker, actuator, perfiles | 🟠 P2 | 4 |
+| 4 | `fix/frontend-ui` | HTML base, navegación, paginación, accesibilidad | 🟠 P2 | 10 |
+| 5 | `chore/limpieza-spring-boot-4` | Fallo latente en la validación | 🟢 P4 | 1 |
 
 ### Comandos para verificar cada arreglo (PowerShell)
 
@@ -37,8 +36,8 @@ docker compose up --build   # prueba integrada con MySQL
 |---|---|
 | Java 21 (Temurin 21.0.12.1) + `JAVA_HOME` | ✅ |
 | Spring Boot 4.1.2 + springdoc 3.2.0 (Hibernate 7.4, Spring 7, Security 7) | ✅ en `main` y `fix/seguridad-auth` |
-| `.\mvnw.cmd verify` (backend) | ✅ compila — ⚠️ 0 tests |
-| `npm run lint` / `npm run build` (frontend) | ✅ 0 errores (aviso de bundle > 500 kB, ver 4.6) |
+| `.\mvnw.cmd verify` (backend) | ✅ 14 tests (13 de integración + 1 unitario) |
+| `npm run lint` / `npm run build` (frontend) | ✅ 0 errores (aviso de bundle > 500 kB, ver 4.6 en `MEJORAS.md`) |
 | `npm audit` raíz y frontend | ✅ 0 vulnerabilidades |
 
 ---
@@ -111,14 +110,9 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
     - **A)** Quitar el `cascade` (o dejar solo `PERSIST`/`MERGE`).
     - **B)** Si se añade un borrado de ubicaciones: responder 409 cuando tenga eventos.
 
-- [ ] **4.5 🟢 Campo `reseñas` con `ñ`**
-  - **Problema:** `B/model/Evento.java:59`. Los identificadores con `ñ` dan problemas en JSON, JPQL y en algunos editores.
-  - **Solución:**
-    - **A)** Renombrar a `resenas` (y su getter/setter y los usos en `EventoService`).
-
 ---
 
-## 3️⃣ Rama `fix/config` — Docker, actuator, perfiles y seeder
+## 3️⃣ Rama `fix/config` — Docker, actuator y perfiles
 
 - [ ] **3.10 🟠 El healthcheck del backend siempre falla**
   - **Problema:** `docker-compose.yml:34` hace `curl -f /actuator/health`, que da 403 porque esa ruta exige autenticación. El contenedor queda "unhealthy" para siempre (no se nota porque nada depende de él).
@@ -135,31 +129,14 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
 - [ ] **3.1 🟢 `npm run dev:backend` fuera de Docker no conecta**
   - **Problema:** `application.properties:7` apunta al host `mysql`, que solo existe dentro de Docker.
   - **Solución:**
-    - **A)** Soporte de Docker Compose de Spring Boot (5.6): Spring arranca el MySQL del `docker-compose.yml` y configura la conexión solo.
+    - **A)** Soporte de Docker Compose de Spring Boot (5.6 en `MEJORAS.md`): Spring arranca el MySQL del `docker-compose.yml` y configura la conexión solo.
     - **B)** Perfil `application-dev.properties` con `localhost:3307` y `"dev:backend"` lanzando con `-Dspring-boot.run.profiles=dev`.
     - **C)** `spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3307/...}` y pasar `DB_URL` en `docker-compose.yml`.
-
-- [ ] **5.4 🟢 Desactivar Swagger en producción** (va con 3.1)
-  - **Problema:** springdoc 3 avisa al arrancar de que la documentación de la API está expuesta.
-  - **Solución:**
-    - **A)** `springdoc.api-docs.enabled=false` y `springdoc.swagger-ui.enabled=false` en el perfil de producción (o al revés: activarlos solo en `dev`).
-
-- [ ] **3.3 🟢 `ddl-auto=update` en la configuración principal**
-  - **Problema:** `application.properties:13`. Hibernate modifica el esquema en cada arranque y nunca borra columnas o restricciones antiguas (ver 2.7).
-  - **Solución:**
-    - **A)** `update` solo en `dev`; `validate` en producción.
-    - **B)** Migraciones con Flyway (`spring-boot-starter-flyway`) y `validate`. Más robusto, pero añade trabajo.
 
 - [ ] **3.8 🟢 Falta `.dockerignore` en `frontend/`**
   - **Problema:** `frontend/Dockerfile:5-6` hace `npm install` y luego `COPY . .`, que copia el `node_modules/` de Windows encima del de Linux (binarios nativos de rolldown, `@tailwindcss/oxide`, lightningcss).
   - **Solución:**
     - **A)** `frontend/.dockerignore` con `node_modules` y `dist`, y `npm ci` en lugar de `npm install`.
-
-- [ ] **3.9 🟢 Restos de configuración**
-  - **Problema:** en `pom.xml`, `lombok.version` (`:31`) existe pero la versión se repite a mano (`:64`, `:139`).
-  - **Solución:**
-    - **A)** Usar `${lombok.version}` en `:64` y `:139`.
-    - **B)** Si se usan Testcontainers (5.7): quitar `h2` y `application-test.properties`.
 
 ---
 
@@ -225,128 +202,14 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
   - **Problema:** el interceptor (`frontend/src/services/apiService.ts:48`) y las páginas muestran los dos un toast de error.
   - **Solución:**
     - **A)** Quitar el toast del interceptor y dejar que cada página muestre su mensaje.
-    - **B)** Dejar solo el del interceptor, leyendo el `message`/`detail` del backend (va mejor con 5.5).
-
-- [ ] **4.9 🟢 El token se guarda dos veces**
-  - **Problema:** `AuthService.login` (`authService.ts:11`) y `LoginPage.tsx:34`.
-  - **Solución:**
-    - **A)** Guardarlo solo en un sitio, en `AppContext`/`login()` o en el servicio, y quitar el otro.
-
-- [ ] **4.2 🟢 `console.log` sueltos**
-  - **Problema:** `EventPage.tsx:61`, `LoginPage.tsx:36` y `RegisterPage.tsx:57`.
-  - **Solución:**
-    - **A)** Borrarlos.
-    - **B)** Regla `no-console: warn` en `eslint.config.js` para que no vuelvan.
-
-- [ ] **4.6 🟢 Bundle JS de 659 kB**
-  - **Problema:** todo va en un único archivo, incluido Leaflet, que solo se usa en `EventPage`.
-  - **Solución:**
-    - **A)** `React.lazy` + `Suspense` por rutas en `App.tsx` (como mínimo `EventPage` y `AdminPage`).
-
-- [ ] **2.4 🟢 El frontend llama a endpoints inexistentes**
-  - **Problema:** `frontend/src/services/userService.ts:7` (`GET /perfil/me`; solo existe `PUT` → 405) y `eventoService.ts:35` (`DELETE /eventos/{id}`). Ninguna de las dos funciones se usa: hoy es código muerto.
-  - **Solución:**
-    - **A)** Quitar las dos llamadas (y `EventoService.create`, que tampoco se usa).
-    - **B)** Crear `GET /perfil/me` y `DELETE /eventos/{id}` en el backend, si se van a usar con el panel de organizador.
-
-- [ ] **3.7 🟢 Dependencias mal clasificadas o sin uso**
-  - **Problema:** `shadcn` (CLI) está en `dependencies` (`frontend/package.json:30`). `next-themes` (`:22`) solo lo importa `ui/sonner.tsx`, que nadie usa.
-  - **Solución:**
-    - **A)** `npm i -D shadcn`; borrar `ui/sonner.tsx` y `npm uninstall next-themes`.
-
-- [ ] **4.14 🟢 El frontend no tiene tests**
-  - **Problema:** no hay framework de tests en `frontend/`. Los arreglos 2.10, 2.11 y 2.22 (Navbar tras el registro, interceptor de 401, `ProtectedRoute` sin `usuario`) solo se han probado a mano.
-  - **Solución:**
-    - **A)** Vitest + React Testing Library (`npm i -D vitest @testing-library/react @testing-library/jest-dom jsdom`) y un script `"test": "vitest"`. Vitest y no Jest porque reutiliza la configuración de Vite (alias `@`, TypeScript) sin Babel. Primeros tests: `ProtectedRoute` (sin token → `/login`; token sin `usuario` en ruta con rol → `/`), `Navbar` (`usuario` sin token → no muestra "Mi panel") y el interceptor de `apiService.ts` (401 en `/auth/login` no redirige).
+    - **B)** Dejar solo el del interceptor, leyendo el `message`/`detail` del backend (va mejor con 5.5, en `MEJORAS.md`).
 
 ---
 
-## 5️⃣ Rama `chore/limpieza-spring-boot-4` — código muerto y dependencias
-
-- [ ] **4.10 🟢 Código muerto en el backend**
-  - **Problema:** `B/service/CategoriaService.java` y `B/exception/CategoriaNoEncontradaException.java` no tienen controlador ni handler; `EventoService.listarPorCategoria`, `JwtUtils.getRolesFromToken` y `UsuarioRepository.findByNombre` no se usan.
-  - **Solución:**
-    - **A)** Borrarlos.
-    - **B)** Usarlos: `GET /api/categorias` + filtro por categoría en Eventos (y handler 404 para la excepción).
+## 5️⃣ Rama `chore/limpieza-spring-boot-4` — fallo latente (el resto de la rama está en MEJORAS.md)
 
 - [ ] **4.11 🟢 (latente) Cast inseguro en el handler de validación**
   - **Problema:** `B/exception/GlobalExceptionHandler.java:53` hace cast a `FieldError` de todos los errores; una validación a nivel de clase lanzaría `ClassCastException`. Hoy ningún DTO la tiene.
   - **Solución:**
     - **A)** Usar `ex.getBindingResult().getFieldErrors()` en vez de `getAllErrors()`.
     - **B)** `if (error instanceof FieldError fe)`.
-
-- [ ] **3.6 🟢 El README describe mal MapStruct**
-  - **Problema:** `README.md:19` dice que MapStruct mapea entidades↔DTOs en general; solo se usa para `Ubicacion` (la línea 68 ya lo dice bien).
-  - **Solución:**
-    - **A)** Corregir la línea 19.
-
-- [ ] **5.3 🟢 `spring.jpa.open-in-view=false`**
-  - **Problema:** está activo por defecto (consultas a la BD durante la serialización, N+1 de ~4 consultas por evento). ⚠️ Desactivarlo sin más **rompe la app**: `EventoService.obtenerTodos`/`obtenerPorId` no son transaccionales y `mapToDTO` (`:77-80`, `:94`) toca relaciones LAZY.
-  - **Solución:**
-    - **A)** Primero `@Transactional(readOnly = true)` en esos métodos, luego `open-in-view=false`.
-    - **B)** Además: `@EntityGraph` o `JOIN FETCH` en `EventoRepository` para resolver el N+1.
-
-- [ ] **5.14 🟢 jjwt 0.11.5 → 0.13.0**
-  - **Problema:** `B/security/JwtUtils.java` usa API obsoleta (`parserBuilder()`, `setSigningKey`, `parseClaimsJws`, `SignatureAlgorithm.HS256`).
-  - **Solución:**
-    - **A)** Subir la versión y cambiar a `Jwts.parser().verifyWith(key).build().parseSignedClaims(token)` y `.signWith(key)`.
-
-- [ ] **5.1 🟢 Filtrar `FACTOR_PASSWORD` del JWT** (Security 7)
-  - **Problema:** `B/security/JwtUtils.java:27-29` emite `"roles":"ROLE_ORGANIZADOR,FACTOR_PASSWORD"`. Hoy no tiene efecto (nadie lee el claim).
-  - **Solución:**
-    - **A)** Filtrar las authorities que empiezan por `ROLE_`.
-    - **B)** Quitar el claim `roles` (junto con `getRolesFromToken`, ver 4.10).
-
-- [ ] **5.2 🟢 Quitar `spring.jpa.database-platform`** (Hibernate 7)
-  - **Problema:** `application.properties:11`; Hibernate detecta MySQL solo y avisa `HHH90000025` al arrancar.
-  - **Solución:**
-    - **A)** Borrar la línea.
-
-- [ ] **5.15 🟢 Lombok 1.18.32 → 1.18.48 y MapStruct 1.5.5 → 1.6.x**
-  - **Problema:** versiones fijadas a mano en `pom.xml:31,64,107,124,134`.
-  - **Solución:**
-    - **A)** Subirlas en la propiedad y usar `${...}` en `annotationProcessorPaths` (junto con 3.9).
-
-- [ ] **5.16 🟢 `spring-boot-starter-web` → `spring-boot-starter-webmvc`**
-  - **Problema:** `pom.xml:40`; Boot 4 renombró el starter y el antiguo está obsoleto.
-  - **Solución:**
-    - **A)** Cambiar el `artifactId`.
-
-- [ ] **5.17 🟢 Dependencias npm desactualizadas** (sin vulnerabilidades)
-  - **Problema:** `lucide-react` 1.8 → 1.62, `radix-ui` 1.4 → 1.8.1, `react`/`react-dom` 19.2 → 19.3.1, `tailwindcss` 4.2 → 4.3.3, etc.
-  - **Solución:**
-    - **A)** `npm update` en `frontend/` (dentro del rango, bajo riesgo) + lint + build.
-    - **B)** Las mayores (`eslint` 10, `typescript` 7, `react-day-picker` 10, `concurrently` 10 en la raíz), cada una aparte y probándola.
-
-- [ ] **5.8 🟢 Null-safety con JSpecify** (Spring 7)
-  - **Problema:** nada avisa de NPE como las de 2.3 (`getRol().name()`) y 2.8 (`fecha` null) antes de ejecutar.
-  - **Solución:**
-    - **A)** `@NullMarked` en `package-info.java` de cada paquete y `@Nullable` donde proceda.
-
-- [ ] **5.5 🟢 `ProblemDetail` (RFC 9457) para los errores** (si no se hizo en la rama 1)
-  - **Problema:** `B/exception/GlobalExceptionHandler.java` devuelve `Map<String,Object>` con un formato propio.
-  - **Solución:**
-    - **A)** Devolver `ProblemDetail` (`{type,title,status,detail}`) y que el frontend lea `detail` (ayuda con 4.4).
-
----
-
-## 6️⃣ Rama `feature/panel-organizador` — funcionalidad pendiente
-
-- [ ] **4.3 Rutas de organizador pendientes**
-  - **Problema:** `frontend/src/App.tsx:31` (TODO). No hay ninguna pantalla para que un organizador cree o edite eventos.
-  - **Solución:**
-    - **A)** Ruta `/organizador` protegida con `allowedRoles={["ROLE_ORGANIZADOR"]}`, que liste sus eventos y permita crear/editar (requiere el `PUT` de 1.6 y la asignación del organizador de 1.4).
-
----
-
-## ➕ Mejoras opcionales (sin rama asignada, para ampliar el TFG)
-
-- [ ] **5.7 Tests con Testcontainers + `@ServiceConnection`** (Boot 3.1) y **`RestTestClient`** (Spring 7) — tests contra un MySQL real en contenedor (ver 4.1).
-- [ ] **5.6 Soporte de Docker Compose en desarrollo** (Boot 3.1) — opción A de 3.1.
-- [ ] **5.9 Versionado de API nativo** (Spring 7) — útil si se cambia el contrato (p. ej. al quitar `organizadorId` en 1.4).
-- [ ] **5.13 DTOs como `record`** (Java 16+) — los de solo lectura (`UsuarioResponseDTO`, `DashboardDTO`, `LoginRequestDTO`).
-- [ ] **5.11 Hilos virtuales** (Boot 3.2, Java 21) — `spring.threads.virtual.enabled=true`.
-- [ ] **5.12 Logs estructurados en JSON** (Boot 3.4) — `logging.structured.format.console=ecs`.
-- [ ] **5.10 MFA / segundo factor** (Security 7) — `@EnableMultiFactorAuthentication` para `ROLE_ADMIN`.
-- [ ] **5.18 Tests end-to-end con Playwright** — flujos completos en un navegador real contra backend + frontend (login correcto/incorrecto, registro, acceso a `/admin` según el rol). Playwright mejor que Cypress: multi-navegador, paralelo sin pagar y `npx playwright codegen` para grabar tests. Hacer después de 4.1 y 4.14.
-- [ ] **5.19 Pipeline de CI con GitHub Actions** — `.github/workflows/ci.yml` que en cada push y PR ejecute `mvnw verify` (backend) y `npm run lint`, `npm run build` y los tests (frontend). Los runners de GitHub traen Docker, así que también sirve para Testcontainers (5.7). Con protección de rama en `main` para no fusionar con el CI en rojo.
