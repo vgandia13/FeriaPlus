@@ -40,13 +40,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 if (jwtUtils.validateToken(token)) {
                     usuarioId = jwtUtils.getUsuarioIdFromToken(token);
-                } else {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
-                    return;
                 }
             } catch (Exception e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error al validar el token");
-                return;
+                // Token corrupto: seguimos sin autenticar y decide SecurityConfig
             }
         }
 
@@ -64,8 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (UsernameNotFoundException e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error al validar el token");
-                return;
+                // Usuario borrado: seguimos sin autenticar
             }
         }
 
