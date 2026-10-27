@@ -25,6 +25,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con email: " + email));
 
+        return toUserDetails(usuario);
+    }
+
+    // Lo usa el filtro JWT: el token guarda el id del usuario
+    public UserDetails loadUserById(Long id) throws UsernameNotFoundException {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con id: " + id));
+
+        return toUserDetails(usuario);
+    }
+
+    // El username sigue siendo el email actual, así principal.getName() devuelve el email
+    private UserDetails toUserDetails(Usuario usuario) {
         return User.builder()
                 .username(usuario.getEmail())
                 .password(usuario.getPassword())

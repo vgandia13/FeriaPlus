@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface ResenaRepository extends JpaRepository<Resena, Long> {
     List<Resena> findByUsuarioId(Long usuarioId);
+    boolean existsByUsuarioId(Long usuarioId);
 }
 

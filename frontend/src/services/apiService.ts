@@ -38,13 +38,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const esAuth = error.config?.url?.startsWith('/auth');
+    if (status === 401 && !esAuth) {
       localStorage.removeItem('token');
       localStorage.removeItem('usuario');
       _setIsLogged?.(false);
       _setUsuario?.(null);
       window.location.href = '/login';
-    }else{
+    } else if (status !== 401) {
       toast.error('Ha ocurrido un error. Intentelo de nuevo');
     }
     return Promise.reject(error);

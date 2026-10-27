@@ -6,7 +6,7 @@ import { useData } from "@/contexts/AppContext";
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { usuario, setUsuario, setIsLogged } = useData();
+  const { usuario, isLogged, setUsuario, setIsLogged } = useData();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -55,7 +55,7 @@ const Navbar = () => {
         >
           Eventos
         </Link>
-        {usuario?.rol === "ROLE_ADMIN" && (
+        {isLogged && usuario?.rol === "ROLE_ADMIN" && (
           <Link
             to="/admin"
             className={`text-sm px-3 py-1.5 rounded-md transition-colors duration-150 flex items-center gap-1.5 ${isActive("/admin")}`}
@@ -73,7 +73,7 @@ const Navbar = () => {
         <ThemeToggle />
         <div className="w-px h-5 bg-primary-foreground/20" />
 
-        {usuario ? (
+        {isLogged && usuario ? (
           <>
             <Button
               variant="ghost"

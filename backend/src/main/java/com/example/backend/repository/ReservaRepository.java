@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     List<Reserva> findByExpositorId(Long expositorId);
+    boolean existsByExpositorId(Long usuarioId);
 }
 

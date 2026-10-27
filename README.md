@@ -128,14 +128,14 @@ Base de datos poblada con éxito: 1 Organizador, 1 admin, 1 Expositor, 1 Visitan
 
 ### Usuarios de prueba
 
-Todos los usuarios del seeder tienen la contraseña `123456`.
+Todos los usuarios del seeder tienen la contraseña `12345678`.
 
-| Email               | Rol              |
-| ------------------- | ---------------- |
-| admin@gmail.com     | ROLE_ADMIN       |
-| admin@feriaplus.com | ROLE_ORGANIZADOR |
-| paco@artesania.com  | ROLE_EXPOSITOR   |
-| carlos@gmail.com    | ROLE_VISITANTE   |
+| Email                 | Rol              |
+| --------------------- | ---------------- |
+| admin@gmail.com       | ROLE_ADMIN       |
+| organizador@gmail.com | ROLE_ORGANIZADOR |
+| paco@artesania.com    | ROLE_EXPOSITOR   |
+| carlos@gmail.com      | ROLE_VISITANTE   |
 
 ### Detener la aplicación
 

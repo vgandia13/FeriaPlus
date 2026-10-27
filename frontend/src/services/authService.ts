@@ -2,6 +2,7 @@ import api from './apiService';
 import type { LoginRequest } from '../types/LoginRequest';
 import type { AuthResponse } from '../types/AuthResponse';
 import { UsuarioRegistro } from '@/types/UsuarioRegistro';
+import type { UsuarioResponseDTO } from '@/types/UsuarioResponseDTO';
 
 export const AuthService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -14,8 +15,10 @@ export const AuthService = {
     return jsonResponse;
   },
 
-  register: async (credentials: UsuarioRegistro): Promise<UsuarioRegistro> => {
-    const response = await api.post<UsuarioRegistro>(
+  register: async (
+    credentials: UsuarioRegistro,
+  ): Promise<UsuarioResponseDTO> => {
+    const response = await api.post<UsuarioResponseDTO>(
       '/auth/register',
       credentials,
     );

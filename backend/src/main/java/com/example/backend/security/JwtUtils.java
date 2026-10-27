@@ -23,13 +23,14 @@ public class JwtUtils {
     }
 
     // Método para generar la "pulsera de acceso"
-    public String generateToken(Authentication authentication) {
+    // El subject es el id (no el email) para que cambiar el email no invalide el token
+    public String generateToken(Authentication authentication, Long usuarioId) {
         String roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
         return Jwts.builder()
-                .setSubject(authentication.getName())
+                .setSubject(String.valueOf(usuarioId))
                 .claim("roles", roles)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + JWT_EXPIRATION_MS))
@@ -38,13 +39,13 @@ public class JwtUtils {
     }
 
     // Método para leer quién es el dueño del token
-    public String getEmailFromToken(String token) {
-        return Jwts.parserBuilder()
+    public Long getUsuarioIdFromToken(String token) {
+        return Long.valueOf(Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .getSubject();
+                .getSubject());
     }
 
     public String getRolesFromToken(String token) {

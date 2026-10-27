@@ -6,9 +6,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.backend.repository.UsuarioRepository;
+import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.DTO.ResenaDTO;
 import com.example.backend.DTO.ReservaDTO;
+import com.example.backend.DTO.UsuarioActualizacionDTO;
+import com.example.backend.DTO.UsuarioAdminUpdateDTO;
 import com.example.backend.DTO.UsuarioRegistroDTO;
 import com.example.backend.DTO.DashboardDTO;
 import com.example.backend.DTO.EventoDTO;
@@ -20,6 +23,8 @@ import com.example.backend.repository.PuestoRepository;
 import java.util.stream.Collectors;
 import com.example.backend.DTO.UsuarioResponseDTO;
 import com.example.backend.exception.EmailRegistradoException;
+import com.example.backend.exception.NoAutorizadoException;
+import com.example.backend.exception.UsuarioConDatosException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
 import lombok.RequiredArgsConstructor;
 
@@ -47,9 +52,9 @@ public class UsuarioService {
     public Page<UsuarioResponseDTO> listarUsuarios(String nombre, Pageable pageable) {
         Page<Usuario> usuarios;
         if (nombre != null && !nombre.isBlank()) {
-            usuarios = usuarioRepository.findByNombreContainingIgnoreCase(nombre, pageable);
+            usuarios = usuarioRepository.findByNombreContainingIgnoreCaseAndRolNot(nombre, Rol.ROLE_ADMIN, pageable);
         } else {
-            usuarios = usuarioRepository.findAll(pageable);
+            usuarios = usuarioRepository.findByRolNot(Rol.ROLE_ADMIN, pageable);
         }
         return usuarios.map(this::mapToResponseDTO);
     }
@@ -110,7 +115,7 @@ public class UsuarioService {
 
     // Método para que el usuario actualice su propio perfil (sin poder cambiar su
     // rol)
-    public UsuarioResponseDTO actualizarPerfilPorUsername(String email, UsuarioRegistroDTO actualizacionDTO) {
+    public UsuarioResponseDTO actualizarPerfilPorUsername(String email, UsuarioActualizacionDTO actualizacionDTO) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
 
@@ -128,8 +133,12 @@ public class UsuarioService {
         }
 
         // 3. Actualización de contraseña (solo si se envía una nueva)
-        if (actualizacionDTO.getPassword() != null && !actualizacionDTO.getPassword().isBlank()) {
-            usuario.setPassword(passwordEncoder.encode(actualizacionDTO.getPassword()));
+        if (actualizacionDTO.getNewPassword() != null && !actualizacionDTO.getNewPassword().isBlank()) {
+            if (actualizacionDTO.getOldPassword() == null
+                || !passwordEncoder.matches(actualizacionDTO.getOldPassword(), usuario.getPassword())) {
+                throw new NoAutorizadoException("La contraseña actual no es correcta");
+            }
+            usuario.setPassword(passwordEncoder.encode(actualizacionDTO.getNewPassword()));
         }
 
         // IMPORTANTE: No incluimos usuario.setRol() aquí por seguridad.
@@ -138,9 +147,16 @@ public class UsuarioService {
         return mapToResponseDTO(updatedUsuario);
     }
 
-    public UsuarioResponseDTO actualizarPerfil(Long id, UsuarioRegistroDTO actualizacionDTO) {
+    public UsuarioResponseDTO actualizarPerfil(Long id, UsuarioAdminUpdateDTO actualizacionDTO) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
+        // Un admin no puede editar a ningún admin, tampoco a sí mismo
+        if (usuario.getRol() == Rol.ROLE_ADMIN) {
+            throw new NoAutorizadoException("No puedes modificar a un administrador");
+        }
+        if (actualizacionDTO.getRol() == Rol.ROLE_ADMIN) {
+            throw new NoAutorizadoException("No puedes asignar el rol de administrador");
+        }
         if (!usuario.getEmail().equals(actualizacionDTO.getEmail())
                 && usuarioRepository.existsByEmail(actualizacionDTO.getEmail())) {
             throw new EmailRegistradoException("El email ya está registrado");
@@ -154,7 +170,15 @@ public class UsuarioService {
     }
 
     public void eliminarUsuario(Long id) {
-        usuarioRepository.deleteById(id);
+        Usuario usuario = usuarioRepository.findById(id)
+            .orElseThrow(() -> new UsuarioNoEncontradoException("No existe usuario con ese ID"));
+        if (usuario.getRol() == Rol.ROLE_ADMIN) {
+            throw new NoAutorizadoException("No puedes eliminar a un administrador");
+        }
+        if(eventoRepository.existsByAsistentes_Id(id) || eventoRepository.existsByOrganizadorId(id) || reservaRepository.existsByExpositorId(id) || resenaRepository.existsByUsuarioId(id)){
+            throw new UsuarioConDatosException("No se puede eliminar: el usuario tiene eventos, reservas o reseñas");
+        }
+        usuarioRepository.delete(usuario);
     }
 
     private UsuarioResponseDTO mapToResponseDTO(Usuario usuario) {
@@ -172,7 +196,11 @@ public class UsuarioService {
         usuario.setNombre(registroDTO.getNombre());
         usuario.setEmail(registroDTO.getEmail());
         usuario.setPassword(passwordEncoder.encode(registroDTO.getPassword()));
-        usuario.setRol(registroDTO.getRol());
+        if(registroDTO.getRol() != Rol.ROLE_ADMIN){
+            usuario.setRol(registroDTO.getRol());
+        }else{
+            throw new NoAutorizadoException("No se puede registrar como Admin");
+        }
         return usuario;
     }
 }
