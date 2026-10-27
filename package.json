@@ -11,16 +11,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vgandia13/Proyecto-Intermodular-2-DAW.git"
+    "url": "git+https://github.com/vgandia13/FeriaPlus.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/vgandia13/Proyecto-Intermodular-2-DAW/issues"
+    "url": "https://github.com/vgandia13/FeriaPlus/issues"
   },
-  "homepage": "https://github.com/vgandia13/Proyecto-Intermodular-2-DAW#readme",
+  "homepage": "https://github.com/vgandia13/FeriaPlus#readme",
   "devDependencies": {
     "concurrently": "^9.2.1"
   }
