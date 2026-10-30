@@ -28,7 +28,6 @@ public class EventoDTO {
     private String imagenUrl;
     private Long categoriaId;
     
-    @NotNull(message = "El ID del organizador es obligatorio")
     private Long organizadorId;
     
     private java.util.List<ResenaDTO> resenas;

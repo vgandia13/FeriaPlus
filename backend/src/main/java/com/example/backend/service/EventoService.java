@@ -48,8 +48,11 @@ public class EventoService {
                 .toList();
     }
 
-    public EventoDTO guardar(EventoDTO eventoDTO) {
+    public EventoDTO guardar(EventoDTO eventoDTO, String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                                            .orElseThrow(() -> new UsuarioNoEncontradoException("No se ha encontrado el usuario"));
         Evento evento = mapToEntity(eventoDTO);
+        evento.setOrganizador(usuario);
         Evento nuevoEvento = eventoRepository.save(evento);
         return mapToDTO(nuevoEvento);
     }
@@ -130,9 +133,6 @@ public class EventoService {
 
         if(dto.getCategoriaId() != null){
             evento.setCategoria(categoriaRepository.findById(dto.getCategoriaId()).orElse(null));
-        }
-        if(dto.getOrganizadorId() != null){
-            evento.setOrganizador(usuarioRepository.findById(dto.getOrganizadorId()).orElse(null));
         }
         return evento;
     }

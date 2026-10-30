@@ -189,4 +189,17 @@ class SeguridadAuthIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre").value("Nombre editado"));
     }
+
+    @Test
+    void organizadorNoUsaOtroUsuarioComoOrganizador() throws Exception {
+        Long ubicacionId = eventoRepository.findAll().get(0).getUbicacion().getId();
+        mockMvc.perform(post("/api/eventos")
+                    .header("Authorization", "Bearer " + login("organizador@gmail.com"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"nombre\":\"EventoMalicioso\",\"fecha\":\"2026-12-01\","
+                            + "\"ubicacion\":{\"id\":\"" + ubicacionId + "\"},"
+                            + "\"organizadorId\":" + idDe("carlos@gmail.com") + "}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.organizadorId").value(idDe("organizador@gmail.com")));
+    }   
 }
