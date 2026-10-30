@@ -2,10 +2,10 @@
 
 > Archivo versionado (desde 2026-10-26) para seguir el trabajo entre dispositivos.
 > Solo **fallos** de la aplicación (incluidos los latentes). Las recomendaciones, la deuda técnica, los tests y las funcionalidades nuevas están en `MEJORAS.md`.
-> Auditoría: 2026-10-26. Última revisión: 2026-10-27 (3ª auditoría completa: cada punto comprobado en el código y, en el backend, reproducido con el jar en H2).
+> Auditoría: 2026-10-26. Última revisión: 2026-10-30 (1.6 resuelto en la rama `fix/eventos`).
 > Git: `main` = `13e62a7` (PR #8, dependencias actualizadas). Tags: `v1.0.0` (Spring Boot 4.1.2) y `v1.1.0` (PR #7, rama `fix/seguridad-auth`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
-> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.19 (opción A: handlers 400/409 con mensajes fijos; el catch-all responde "Error interno" y registra el detalle con `log.error`), 2.20, 2.2 (409 con mensaje claro si el usuario tiene eventos, reservas o reseñas), 2.1 (401 en `AuthenticationException` y 403 en `AccessDeniedException`), 2.11 (el interceptor no redirige con un 401 de `/auth/*`), 2.15 (el filtro JWT ya no corta la petición; `HttpStatusEntryPoint` da 401 en rutas protegidas), 2.10 (el registro no guarda `usuario`; la Navbar exige `isLogged`), 2.22 (`ProtectedRoute` expulsa si no hay `usuario`), 4.1 (14 tests: 13 de integración con MockMvc + H2 y 1 unitario con Mockito; `h2` en scope `test`) y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`).
+> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.19 (opción A: handlers 400/409 con mensajes fijos; el catch-all responde "Error interno" y registra el detalle con `log.error`), 2.20, 2.2 (409 con mensaje claro si el usuario tiene eventos, reservas o reseñas), 2.1 (401 en `AuthenticationException` y 403 en `AccessDeniedException`), 2.11 (el interceptor no redirige con un 401 de `/auth/*`), 2.15 (el filtro JWT ya no corta la petición; `HttpStatusEntryPoint` da 401 en rutas protegidas), 2.10 (el registro no guarda `usuario`; la Navbar exige `isLogged`), 2.22 (`ProtectedRoute` expulsa si no hay `usuario`), 4.1 (14 tests: 13 de integración con MockMvc + H2 y 1 unitario con Mockito; `h2` en scope `test`) y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`), 1.6 (opción A: `mapToEntity` ya no copia el `id`; nuevo `PUT /api/eventos/{id}` con `@PreAuthorize` ORGANIZADOR/ADMIN que solo deja editar al organizador del evento o a un ADMIN, 403 si no; edita `nombre` y `descripcion`; 4 tests nuevos, 18 en total).
 
 ## Cómo leer este archivo
 
@@ -16,8 +16,8 @@
 
 | # | Rama | Contenido | Prioridad máx. | Puntos |
 |---|---|---|---|---|
-| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 0 |
-| 2 | `fix/eventos` | Crear/editar eventos y modelo JPA | 🔴 P1 | 10 |
+| 1 | `fix/seguridad-auth` | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 0 |
+| 2 | `fix/eventos` (actual) | Crear/editar eventos y modelo JPA | 🔴 P1 | 9 |
 | 3 | `fix/config` | Docker, actuator, perfiles | 🟠 P2 | 4 |
 | 4 | `fix/frontend-ui` | HTML base, navegación, paginación, accesibilidad | 🟠 P2 | 10 |
 | 5 | `chore/limpieza-spring-boot-4` | Fallo latente en la validación | 🟢 P4 | 1 |
@@ -30,13 +30,13 @@ cd frontend; npm run lint; npm run build; cd ..
 docker compose up --build   # prueba integrada con MySQL
 ```
 
-### Estado del entorno (2026-10-27)
+### Estado del entorno (2026-10-30)
 
 | Comprobación | Resultado |
 |---|---|
 | Java 21 (Temurin 21.0.12.1) + `JAVA_HOME` | ✅ |
 | Spring Boot 4.1.2 + springdoc 3.2.0 (Hibernate 7.4, Spring 7, Security 7) | ✅ en `main` y `fix/seguridad-auth` |
-| `.\mvnw.cmd verify` (backend) | ✅ 14 tests (13 de integración + 1 unitario) |
+| `.\mvnw.cmd verify` (backend) | ✅ 18 tests (16 de integración + 2 unitarios) |
 | `npm run lint` / `npm run build` (frontend) | ✅ 0 errores (aviso de bundle > 500 kB, ver 4.6 en `MEJORAS.md`) |
 | `npm audit` raíz y frontend | ✅ 0 vulnerabilidades |
 
@@ -52,20 +52,14 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
 
 ## 2️⃣ Rama `fix/eventos` — crear/editar eventos y modelo JPA
 
-- [ ] **1.6 🔴 Cualquier ORGANIZADOR puede sobrescribir cualquier evento**
-  - **Problema:** `B/service/EventoService.java:106` copia `dto.getId()` en la entidad y `save()` hace *merge*. Un `POST /api/eventos` con `{"id":2,...}` reescribe el evento 2 (probado: 200) y, como `asistentes` llega vacío, **borra sus asistencias**.
-  - **Solución:**
-    - **A)** Al crear, ignorar el id (`evento.setId(null)`, o no copiarlo en `mapToEntity`). Para editar, añadir `PUT /api/eventos/{id}` que cargue el evento existente, compruebe que el usuario autenticado es su organizador (o ADMIN) y copie solo los campos editables.
-    - **B)** Quitar `id` del DTO de entrada (un `EventoCreateDTO` sin id ni organizador).
-
 - [ ] **1.4 🔴 `organizadorId` viene del cliente**
-  - **Problema:** `B/controller/EventoController.java:44` + `B/service/EventoService.java:118-119`. Un ORGANIZADOR puede crear eventos a nombre de cualquier usuario (probado con un VISITANTE como organizador).
+  - **Problema:** `B/controller/EventoController.java:53` + `B/service/EventoService.java:134-135`. Un ORGANIZADOR puede crear eventos a nombre de cualquier usuario (probado con un VISITANTE como organizador). Además, el `@Valid` del `PUT /api/eventos/{id}` exige `organizadorId`, `fecha` y `ubicacion` aunque `editar()` los ignora.
   - **Solución:**
-    - **A)** Recibir `Authentication`/`Principal` en el controlador, buscar el usuario por email y asignarlo como organizador; ignorar `organizadorId` del DTO.
+    - **A)** Recibir `Authentication`/`Principal` en el controlador, buscar el usuario por email y asignarlo como organizador; ignorar `organizadorId` del DTO (como ya hace el `PUT`). Un DTO de entrada sin `id` ni `organizadorId` sirve para `POST` y `PUT`.
     - **B)** Si un ADMIN debe poder crear eventos para otros: aceptar `organizadorId` solo cuando el rol sea ADMIN y comprobar que el destino es ORGANIZADOR.
 
 - [ ] **2.5 🟠 Crear un evento con ubicación falla**
-  - **Problema:** `B/service/EventoService.java:112` mapea la ubicación a una entidad suelta. Ubicación nueva → `TransientPropertyValueException` (500); `id` inexistente → 500 por FK; `id` no numérico → 500 (`UbicacionDTO.id` es `String`).
+  - **Problema:** `B/service/EventoService.java:128` mapea la ubicación a una entidad suelta. Ubicación nueva → `TransientPropertyValueException` (500); `id` inexistente → 500 por FK; `id` no numérico → 500 (`UbicacionDTO.id` es `String`).
   - **Solución:**
     - **A)** Recibir solo `ubicacionId` (Long) y hacer `ubicacionRepository.findById(...).orElseThrow(...)` → 404 si no existe.
     - **B)** Si se quieren crear ubicaciones al vuelo: si viene sin id, guardarla antes con `ubicacionRepository.save(...)`.
@@ -85,7 +79,7 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
 - [ ] **2.8 🟠 NPE en el dashboard si `fecha` es null**
   - **Problema:** `B/service/UsuarioService.java:97`.
   - **Solución:**
-    - **A)** Copiar el patrón de `EventoService.java:76` (`fecha != null ? fecha.toString() : null`).
+    - **A)** Copiar el patrón de `EventoService.java:93` (`fecha != null ? fecha.toString() : null`).
     - **B)** Hacer `fecha` obligatoria (`@Column(nullable = false)` + `@NotNull` en el DTO).
 
 - [ ] **2.17 🟠 El dashboard se queda en "Cargando…" si falla la petición**
@@ -94,7 +88,7 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
     - **A)** `try/catch/finally` con un estado `error` y un mensaje en pantalla; `formatDate` solo con día/mes/año y `parseISO` (ver 2.24).
 
 - [ ] **4.12 🟡 El ordenamiento público acepta propiedades anidadas**
-  - **Problema:** `B/controller/EventoController.java:33`: `?sort=organizador.password` funciona (ordena por el hash bcrypt).
+  - **Problema:** `B/controller/EventoController.java:35`: `?sort=organizador.password` funciona (ordena por el hash bcrypt).
   - **Solución:**
     - **A)** Lista blanca: comprobar que cada `Sort.Order` sea `nombre`, `fecha` o `id`; si no, 400.
     - **B)** Quitar `Pageable` libre y aceptar solo `?orden=fecha|nombre`.

@@ -1,5 +1,8 @@
 package com.example.backend;
 
+import com.example.backend.model.Rol;
+import com.example.backend.model.Usuario;
+import com.example.backend.repository.EventoRepository;
 import com.example.backend.repository.UsuarioRepository;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
@@ -7,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +29,12 @@ class SeguridadAuthIntegrationTest {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private EventoRepository eventoRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     private String login(String email) throws Exception {
         String json = mockMvc.perform(post("/api/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -36,6 +46,15 @@ class SeguridadAuthIntegrationTest {
 
     private Long idDe(String email) {
         return usuarioRepository.findByEmail(email).orElseThrow().getId();
+    }
+
+    // Todos los eventos del seeder son de organizador@gmail.com
+    private Long idEventoDelSeeder() {
+        return eventoRepository.findAll().get(0).getId();
+    }
+
+    private String eventoJson(String nombre) {
+        return "{\"nombre\":\"" + nombre + "\",\"fecha\":\"2026-12-01\",\"ubicacion\":{},\"organizadorId\":1}";
     }
 
     @Test
@@ -133,5 +152,41 @@ class SeguridadAuthIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\":\"Carlos\",\"email\":\"carlos@gmail.com\",\"oldPassword\":\"contrasenaMala\",\"newPassword\":\"contrasenaNueva\"}"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void visitanteNoEditaEventos() throws Exception {
+        mockMvc.perform(put("/api/eventos/" + idEventoDelSeeder())
+                        .header("Authorization", "Bearer " + login("carlos@gmail.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventoJson("Hackeado")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void organizadorNoEditaEventoDeOtro() throws Exception {
+        Usuario otro = new Usuario();
+        otro.setNombre("Otro Organizador");
+        otro.setEmail("otro@gmail.com");
+        otro.setPassword(passwordEncoder.encode("12345678"));
+        otro.setRol(Rol.ROLE_ORGANIZADOR);
+        usuarioRepository.save(otro);
+
+        mockMvc.perform(put("/api/eventos/" + idEventoDelSeeder())
+                        .header("Authorization", "Bearer " + login("otro@gmail.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventoJson("Hackeado")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("No puedes editar este evento"));
+    }
+
+    @Test
+    void organizadorEditaSuEvento() throws Exception {
+        mockMvc.perform(put("/api/eventos/" + idEventoDelSeeder())
+                        .header("Authorization", "Bearer " + login("organizador@gmail.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventoJson("Nombre editado")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Nombre editado"));
     }
 }

@@ -11,8 +11,10 @@ import com.example.backend.mapper.UbicacionMapper;
 import com.example.backend.DTO.EventoDTO;
 import com.example.backend.DTO.ResenaDTO;
 import com.example.backend.exception.EventoNoEncontradoException;
+import com.example.backend.exception.NoAutorizadoException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
 import com.example.backend.model.Evento;
+import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.repository.CategoriaRepository;
 import com.example.backend.repository.EventoRepository;
@@ -50,6 +52,21 @@ public class EventoService {
         Evento evento = mapToEntity(eventoDTO);
         Evento nuevoEvento = eventoRepository.save(evento);
         return mapToDTO(nuevoEvento);
+    }
+
+    public EventoDTO editar(Long id, EventoDTO dto, String email){
+        Evento evento = eventoRepository.findById(id)
+                        .orElseThrow(() -> new EventoNoEncontradoException("No se ha encontrado el evento"));
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                                            .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
+        boolean esAdmin = usuario.getRol() == Rol.ROLE_ADMIN;
+        if (!esAdmin && !evento.getOrganizador().getEmail().equals(email)) {
+            throw new NoAutorizadoException("No puedes editar este evento");
+        }
+        evento.setNombre(dto.getNombre());
+        evento.setDescripcion(dto.getDescripcion());
+        
+        return mapToDTO(eventoRepository.save(evento));
     }
 
     public EventoDTO obtenerPorId(Long id) {
@@ -103,7 +120,6 @@ public class EventoService {
 
     private Evento mapToEntity(EventoDTO dto) {
         Evento evento = new Evento();
-        evento.setId(dto.getId());
         evento.setNombre(dto.getNombre());
         evento.setDescripcion(dto.getDescripcion());
         if(dto.getFecha() != null){
