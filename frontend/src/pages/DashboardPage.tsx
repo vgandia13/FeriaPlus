@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import ProfileEditForm from "./ProfileEditForm";
+import { toast } from "sonner";
 
 export const formatDate = (ISOdate?: string) =>
   ISOdate
@@ -20,26 +21,33 @@ export const formatDate = (ISOdate?: string) =>
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
       })
     : "N/A";
 
 const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState<DashboardDTO>();
   const [editOpen, setEditOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadDashboard = async () => {
-      const response = await userService.getDashboardData();
-      setDashboardData(response);
+      try {
+        setDashboardData(await userService.getDashboardData());
+      } catch {
+        toast.error("Intente de nuevo.");
+        setError("No se pudo cargar el dashboard.");
+      } finally {
+        setLoading(false);
+      }
     };
-
     loadDashboard();
   }, []);
 
-  if (!dashboardData)
+  if (loading)
     return <div className="text-center p-10">Cargando dashboard...</div>;
+  if (error || !dashboardData)
+    return <div className="text-center p-10">{error ?? "Sin datos."}</div>;
 
   return (
     <div className="container mx-auto py-8">
