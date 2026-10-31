@@ -16,7 +16,7 @@
 | Eventos | rama nueva (`fix/eventos` ya está fusionada) | 1 |
 | Configuración | `fix/config` | 3 |
 | Frontend | `fix/frontend-ui` | 5 |
-| Limpieza y dependencias | `chore/limpieza-spring-boot-4` | 9 |
+| Limpieza y dependencias | rama nueva (`chore/limpieza-spring-boot-4` se cerró solo con 4.11) | 9 |
 | Panel de organizador | `feature/panel-organizador` | 1 |
 | JWT en cookie `HttpOnly` (guía) | `feature/auth-cookie` | 1 |
 | Login con Google (guía, requiere 5.20) | `feature/google-login` | 1 |
@@ -116,7 +116,9 @@
 
 ---
 
-## 5️⃣ Rama `chore/limpieza-spring-boot-4`
+## 5️⃣ Limpieza y dependencias
+
+> La rama `chore/limpieza-spring-boot-4` se cerró solo con el fallo 4.11 de `ERRORES.md`: estas mejoras van en una rama nueva.
 
 - [ ] **4.10 🟢 Código muerto en el backend**
   - **Problema:** `B/service/CategoriaService.java` y `B/exception/CategoriaNoEncontradaException.java` no tienen controlador ni handler; `EventoService.listarPorCategoria`, `JwtUtils.getRolesFromToken` y `UsuarioRepository.findByNombre` no se usan.
