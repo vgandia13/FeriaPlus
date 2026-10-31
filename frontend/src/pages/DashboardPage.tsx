@@ -27,7 +27,7 @@ const DashboardPage = () => {
       try {
         setDashboardData(await userService.getDashboardData());
       } catch {
-        toast.error("Intente de nuevo.");
+        toast.error("Inténtalo de nuevo.");
         setError("No se pudo cargar el dashboard.");
       } finally {
         setLoading(false);
@@ -68,7 +68,13 @@ const DashboardPage = () => {
                     user={dashboardData.usuario}
                     onSuccess={async () => {
                       setEditOpen(false);
-                      setDashboardData(await userService.getDashboardData());
+                      try {
+                        setDashboardData(await userService.getDashboardData());
+                      } catch {
+                        toast.error(
+                          "Perfil guardado, pero no se pudo recargar el panel",
+                        );
+                      }
                     }}
                     BotonCancelar={
                       <DialogClose asChild>

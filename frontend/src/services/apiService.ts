@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
@@ -29,10 +28,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    toast.error('Error en la solicitud');
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(error),
 );
 
 api.interceptors.response.use(
@@ -46,8 +42,6 @@ api.interceptors.response.use(
       _setIsLogged?.(false);
       _setUsuario?.(null);
       window.location.href = '/login';
-    } else if (status !== 401) {
-      toast.error('Ha ocurrido un error. Intentelo de nuevo');
     }
     return Promise.reject(error);
   },
