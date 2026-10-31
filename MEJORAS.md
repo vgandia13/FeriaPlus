@@ -110,9 +110,9 @@
     - **B)** Crear `GET /perfil/me` y `DELETE /eventos/{id}` en el backend, si se van a usar con el panel de organizador.
 
 - [ ] **3.7 🟢 Dependencias mal clasificadas o sin uso**
-  - **Problema:** `shadcn` (CLI) está en `dependencies` (`frontend/package.json:30`). `next-themes` (`:22`) solo lo importa `ui/sonner.tsx`, que nadie usa.
+  - **Problema:** `shadcn` (CLI) está en `dependencies` (`frontend/package.json`). `next-themes` ya se desinstaló en 2.9 (`ui/sonner.tsx` sí se usa, en `MainLayout`, y ahora lee el `ThemeProvider`). `components/ui/pagination.tsx` dejó de usarse en 2.14 (lo sustituye `components/Paginacion.tsx`).
   - **Solución:**
-    - **A)** `npm i -D shadcn`; borrar `ui/sonner.tsx` y `npm uninstall next-themes`.
+    - **A)** `npm i -D shadcn` y borrar `components/ui/pagination.tsx`.
 
 ---
 
@@ -165,7 +165,7 @@
 - [ ] **5.5 🟢 `ProblemDetail` (RFC 9457) para los errores** (si no se hizo en la rama 1)
   - **Problema:** `B/exception/GlobalExceptionHandler.java` devuelve `Map<String,Object>` con un formato propio.
   - **Solución:**
-    - **A)** Devolver `ProblemDetail` (`{type,title,status,detail}`) y que el frontend lea `detail` (ayuda con 4.4).
+    - **A)** Devolver `ProblemDetail` (`{type,title,status,detail}`) y que el frontend lea `detail` (4.4 se resolvió dejando el mensaje de cada página; con `detail` se podrían mostrar mensajes más concretos del backend).
 
 ---
 
