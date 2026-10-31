@@ -25,7 +25,7 @@ const EventPage = () => {
   const { id } = useParams<{ id: string }>();
   const { resolvedTheme } = useTheme();
   const [event, setEvent] = useState<EventoDTO | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const lat = event?.ubicacion?.latitud;
   const lng = event?.ubicacion?.longitud;
   const posicionValida = lat !== undefined && lng !== undefined;
@@ -53,15 +53,19 @@ const EventPage = () => {
 
   useEffect(() => {
     const loadEvent = async () => {
-      if (!id) return;
+      if (!id) {
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
+
       try {
         const data = await EventoService.obtenerPorId(Number(id));
         setEvent(data);
-        console.log(data);
       } catch (error) {
         console.error("Error al cargar el evento", error);
+        setEvent(null);
         toast.error("No se pudo cargar el evento.");
       } finally {
         setLoading(false);
