@@ -24,12 +24,6 @@ import { useEffect, useState } from "react";
 import { UsuarioResponseDTO } from "@/types/UsuarioResponseDTO";
 import { Button } from "@/components/ui/button";
 import {
-  Pagination,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { ChevronsLeft, ChevronsRight } from "lucide-react";
-import {
   InputGroup,
   InputGroupButton,
   InputGroupInput,
@@ -43,6 +37,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import AdminEditForm from "./AdminEditForm";
+import { Paginacion } from "@/components/Paginacion";
 
 const ROL_LABELS: Record<string, string> = {
   ROLE_ADMIN: "Admin",
@@ -124,8 +119,13 @@ const AdminPage = () => {
       await adminService.deleteUser(id);
       toast.success("Usuario eliminado correctamente.");
       const dataFetch = await loadUsers(debouncedSearchTerms, page);
+      const nuevasPaginas = dataFetch.page.totalPages;
+      if (page > 0 && page >= nuevasPaginas) {
+        setPage(Math.max(0, nuevasPaginas - 1));
+        return;
+      }
       setUsers(dataFetch.content);
-      setTotalPages(dataFetch.page.totalPages);
+      setTotalPages(nuevasPaginas);
       setTotalElements(dataFetch.page.totalElements);
     } catch (error) {
       console.error(error);
@@ -290,42 +290,11 @@ const AdminPage = () => {
       </div>
 
       <div className="flex justify-end mt-8">
-        <Pagination className="flex items-center align-middle justify-center">
-          <Button variant={"ghost"} onClick={() => setPage(0)}>
-            <ChevronsLeft
-              className={
-                page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"
-              }
-            />
-          </Button>
-          <PaginationPrevious
-            className={
-              page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"
-            }
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-          />
-          <span className="mx-4 flex items-center text-sm font-medium">
-            Página {page + 1} de {totalPages || 1}
-          </span>
-          <PaginationNext
-            className={
-              page >= totalPages - 1
-                ? "pointer-events-none opacity-50"
-                : "cursor-pointer"
-            }
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-          />
-          <Button variant={"ghost"}>
-            <ChevronsRight
-              onClick={() => setPage(totalPages - 1)}
-              className={
-                page >= totalPages - 1
-                  ? "pointer-events-none opacity-50"
-                  : "cursor-pointer"
-              }
-            />
-          </Button>
-        </Pagination>
+        <Paginacion
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );
