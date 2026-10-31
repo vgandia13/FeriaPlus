@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { Paginacion } from "@/components/Paginacion";
+import { formatDate } from "@/lib/fechas";
 
 const EventsPage = () => {
   const [events, setEvents] = useState<EventoDTO[]>([]);
@@ -131,7 +132,7 @@ const EventsPage = () => {
                 </CardContent>
                 <CardFooter className="flex flex-col items-start gap-2 text-sm text-muted-foreground pt-4 border-t">
                   <p>📍 {event.ubicacion?.nombre ?? "Sin Ubicación"}</p>
-                  <p>📅 {new Date(event.fecha).toLocaleDateString()}</p>
+                  <p>📅 {formatDate(event.fecha)}</p>
                   <Link
                     className="text-primary hover:underline"
                     to={`/events/${event.id}`}

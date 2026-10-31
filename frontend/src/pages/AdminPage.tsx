@@ -38,6 +38,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { formatFechaHora } from "@/lib/fechas";
 
 const ROL_LABELS: Record<string, string> = {
   ROLE_ADMIN: "Admin",
@@ -45,15 +46,6 @@ const ROL_LABELS: Record<string, string> = {
   ROLE_VISITANTE: "Visitante",
   ROLE_EXPOSITOR: "Expositor",
 };
-
-export const formatDate = (ISOdate: string) =>
-  new Date(ISOdate).toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 
 const AdminPage = () => {
   const [users, setUsers] = useState<UsuarioResponseDTO[]>([]);
@@ -220,7 +212,7 @@ const AdminPage = () => {
                     {ROL_LABELS[user.rol] ?? user.rol}
                   </TableCell>
                   <TableCell className="border-r border-border text-center">
-                    {formatDate(user.fechaRegistro)}
+                    {formatFechaHora(user.fechaRegistro)}
                   </TableCell>
                   <TableCell className="text-center">
                     <AlertDialog>

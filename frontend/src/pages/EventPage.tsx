@@ -10,6 +10,7 @@ import L from "leaflet";
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import { useTheme } from "@/components/theme-provider";
+import { formatDate } from "@/lib/fechas";
 
 const defaultIcon = L.icon({
   iconUrl,
@@ -95,9 +96,7 @@ const EventPage = () => {
       <p className="mt-2 font-semibold">
         Ubicación: <Badge>{event.ubicacion?.nombre ?? "Sin Ubicación"}</Badge>
       </p>
-      <p className="mt-2">
-        Fecha: {new Date(event.fecha).toLocaleDateString()}
-      </p>
+      <p className="mt-2">Fecha: {formatDate(event.fecha)}</p>
 
       {event.resenas && event.resenas.length > 0 && (
         <div className="mt-8">

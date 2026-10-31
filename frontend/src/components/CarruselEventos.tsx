@@ -19,6 +19,7 @@ import { EventoService } from "@/services/eventoService";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
+import { formatDate } from "@/lib/fechas";
 
 const CarruselEventos = () => {
   const [eventos, setEventos] = useState<EventoDTO[]>([]);
@@ -102,7 +103,7 @@ const CarruselEventos = () => {
 
                   <CardFooter className="flex justify-between items-center mt-auto border-t pt-4">
                     <span className="text-sm font-semibold">
-                      {new Date(evento.fecha).toLocaleDateString()}
+                      {formatDate(evento.fecha)}
                     </span>
                     <Button
                       variant={"link"}

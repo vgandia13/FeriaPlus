@@ -14,15 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import ProfileEditForm from "./ProfileEditForm";
 import { toast } from "sonner";
-
-export const formatDate = (ISOdate?: string) =>
-  ISOdate
-    ? new Date(ISOdate).toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })
-    : "N/A";
+import { formatDate } from "@/lib/fechas";
 
 const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState<DashboardDTO>();
