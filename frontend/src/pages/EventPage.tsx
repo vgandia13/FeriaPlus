@@ -22,7 +22,7 @@ L.Marker.prototype.options.icon = defaultIcon;
 
 const EventPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [event, setEvent] = useState<EventoDTO | null>(null);
   const [loading, setLoading] = useState(false);
   const lat = event?.ubicacion?.latitud;
@@ -40,7 +40,7 @@ const EventPage = () => {
   const mapRef = useRef<L.Map | null>(null);
 
   const tileUrl =
-    theme === "dark"
+    resolvedTheme === "dark"
       ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
@@ -78,7 +78,7 @@ const EventPage = () => {
 
       return () => clearTimeout(timeout);
     }
-  }, [posicionValida, event, theme]);
+  }, [posicionValida, event, resolvedTheme]);
 
   if (loading) return <div>Cargando evento...</div>;
   if (!event) return <div>Evento no encontrado.</div>;
@@ -139,7 +139,7 @@ const EventPage = () => {
 
               <Marker
                 position={[lat, lng]}
-                icon={theme === "light" ? defaultIcon : darkIcon}
+                icon={resolvedTheme === "dark" ? darkIcon : defaultIcon}
               >
                 <Popup className="bg-background">
                   <div className="bg-primary text-primary-foreground p-2 rounded-md -m-1">
