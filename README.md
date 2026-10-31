@@ -124,7 +124,7 @@ Base de datos poblada con éxito: 1 Organizador, 1 admin, 1 Expositor, 1 Visitan
 | Frontend (React)   | http://localhost:8081                       |
 | Backend (API REST) | http://localhost:8080                       |
 | Swagger UI         | http://localhost:8080/swagger-ui/index.html |
-| Health check       | http://localhost:8080/actuator/health       |
+| Health check       | http://localhost:8080/actuator/health (hoy responde 403, ver 3.10 en `ERRORES.md`) |
 
 ### Usuarios de prueba
 
@@ -140,12 +140,14 @@ Todos los usuarios del seeder tienen la contraseña `12345678`.
 ### Detener la aplicación
 
 ```bash
-# Detener los contenedores (conserva los datos de la base de datos)
-docker compose down
+# Pausar los contenedores (conserva los datos de la base de datos)
+docker compose stop
 
-# Detener y eliminar también el volumen de MySQL (reinicia la DB desde cero)
-docker compose down -v
+# Eliminar los contenedores (la base de datos se pierde y el seeder la recrea en el siguiente arranque)
+docker compose down
 ```
+
+> De momento MySQL no tiene un volumen con nombre, así que `docker compose down` **borra los datos** (ver 3.12 en `ERRORES.md`). Usa `stop` / `docker compose start` si quieres conservarlos.
 
 ---
 

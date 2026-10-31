@@ -13,7 +13,7 @@
 | Apartado | Rama | Puntos |
 |---|---|---|
 | Tests y CI | `test/unitarios` y siguientes | 5 |
-| Eventos | `fix/eventos` | 1 |
+| Eventos | rama nueva (`fix/eventos` ya está fusionada) | 1 |
 | Configuración | `fix/config` | 3 |
 | Frontend | `fix/frontend-ui` | 5 |
 | Limpieza y dependencias | `chore/limpieza-spring-boot-4` | 9 |
@@ -45,11 +45,13 @@
 
 - [ ] **5.18 Tests end-to-end con Playwright** — flujos completos en un navegador real contra backend + frontend (login correcto/incorrecto, registro, acceso a `/admin` según el rol). Playwright mejor que Cypress: multi-navegador, paralelo sin pagar y `npx playwright codegen` para grabar tests. Hacer después de 4.1 y 4.14.
 
-- [ ] **5.19 Pipeline de CI con GitHub Actions** — `.github/workflows/ci.yml` que en cada push y PR ejecute `mvnw verify` (backend) y `npm run lint`, `npm run build` y los tests (frontend). Los runners de GitHub traen Docker, así que también sirve para Testcontainers (5.7). Con protección de rama en `main` para no fusionar con el CI en rojo.
+- [ ] **5.19 Pipeline de CI con GitHub Actions** — `.github/workflows/ci.yml` que en cada push y PR ejecute `mvnw verify` (backend) y `npm run lint`, `npm run build` y los tests (frontend). Los runners de GitHub traen Docker, así que también sirve para Testcontainers (5.7). Con protección de rama en `main` para no fusionar con el CI en rojo. En curso en la rama `chore/ci` (Node 22, como `frontend/Dockerfile`; usar `npm ci`, no `npm install`).
 
 ---
 
-## 2️⃣ Rama `fix/eventos`
+## 2️⃣ Eventos
+
+> La rama `fix/eventos` se fusionó (PR #9) sin este punto: hacerlo en una rama nueva o junto con la limpieza.
 
 - [ ] **4.5 🟢 Campo `reseñas` con `ñ`**
   - **Problema:** `B/model/Evento.java:59`. Los identificadores con `ñ` dan problemas en JSON, JPQL y en algunos editores.
@@ -149,7 +151,8 @@
   - **Solución:**
     - **A)** Cambiar el `artifactId`.
 
-- [ ] **5.17 🟢 Versiones mayores de npm pendientes** (sin vulnerabilidades)
+- [ ] **5.17 🟢 Versiones mayores de npm pendientes**
+  - **Vulnerabilidades (2026-10-31):** `npm audit` en `frontend/` da 17 (2 bajas + 15 moderadas), pero son solo 2 de origen y las demás son paquetes que dependen de ellas: `minimatch` <11.0.1 (DoS con globs; la traen `eslint` 9 y 10 y `typescript-eslint` 8.72) y `deepmerge` ≤4.3.1 (*prototype poisoning*; la trae la CLI de `shadcn` 4.23, y no hay versión corregida). Afectan solo a herramientas de desarrollo; al bundle solo llega `shadcn/tailwind.css`. **No usar `npm audit fix --force`**: baja `shadcn` a 1.0 y `typescript-eslint` a 8.14 y rompe build y lint. Volver a mirarlo cuando las versiones nuevas de esos paquetes usen `minimatch` 11.
   - **Problema:** las versiones menores ya están al día (`npm update` en la PR #8). Quedan las mayores, que pueden romper cosas: `eslint`/`@eslint/js` 9 → 10, `typescript` 6 → 7, `react-day-picker` 9 → 10, `@types/node` 24 → 26 (en `frontend/`) y `concurrently` 9 → 10 (en la raíz).
   - **Solución:**
     - **A)** Cada una en un commit aparte, leyendo sus notas de versión y comprobando con lint + build (y la app a mano en el caso de `react-day-picker`, que usa el calendario).
