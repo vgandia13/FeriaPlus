@@ -6,17 +6,6 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { adminService } from "@/services/adminService";
@@ -32,12 +21,23 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import AdminEditForm from "./AdminEditForm";
 import { Paginacion } from "@/components/Paginacion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const ROL_LABELS: Record<string, string> = {
   ROLE_ADMIN: "Admin",
@@ -63,6 +63,7 @@ const AdminPage = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [editando, setEditando] = useState<UsuarioResponseDTO | null>(null);
 
   const loadUsers = async (nombre: string, p: number) => {
     setLoading(true);
@@ -247,40 +248,13 @@ const AdminPage = () => {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="secondary" className="ml-2">
-                          Editar
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent
-                        aria-describedby="Formulario de edicion de usuario"
-                        className="w-auto"
-                      >
-                        <DialogHeader>
-                          <DialogTitle>Editar Usuario</DialogTitle>
-                        </DialogHeader>
-                        <AdminEditForm
-                          user={user}
-                          onSuccess={async () => {
-                            const data = await loadUsers(
-                              debouncedSearchTerms,
-                              page,
-                            );
-                            setUsers(data.content);
-                            setTotalPages(data.page.totalPages);
-                            setTotalElements(data.page.totalElements);
-                            // Cierra el diálogo programáticamente si fuera necesario,
-                            // pero DialogClose en el BotonCancelar ya debería manejarlo.
-                          }}
-                          BotonCancelar={
-                            <DialogClose asChild>
-                              <Button>Cancelar</Button>
-                            </DialogClose>
-                          }
-                        />
-                      </DialogContent>
-                    </Dialog>
+                    <Button
+                      variant="secondary"
+                      className="ml-2"
+                      onClick={() => setEditando(user)}
+                    >
+                      Editar
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -296,6 +270,36 @@ const AdminPage = () => {
           onPageChange={setPage}
         />
       </div>
+      <Dialog
+        open={editando !== null}
+        onOpenChange={(abierto) => !abierto && setEditando(null)}
+      >
+        <DialogContent className="w-auto">
+          <DialogHeader>
+            <DialogTitle>Editar usuario</DialogTitle>
+            <DialogDescription>
+              Cambia el nombre, el correo o el rol del usuario.
+            </DialogDescription>
+          </DialogHeader>
+          {editando && (
+            <AdminEditForm
+              user={editando}
+              onSuccess={async () => {
+                setEditando(null);
+                const data = await loadUsers(debouncedSearchTerms, page);
+                setUsers(data.content);
+                setTotalPages(data.page.totalPages);
+                setTotalElements(data.page.totalElements);
+              }}
+              BotonCancelar={
+                <DialogClose asChild>
+                  <Button type="button">Cancelar</Button>
+                </DialogClose>
+              }
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

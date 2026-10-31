@@ -107,8 +107,12 @@ const AdminEditForm = ({
         </Select>
       </div>
       <Button type="submit">Guardar cambios</Button>
-      <Button type="reset" variant={"secondary"}>
-        Limpiar
+      <Button
+        type="button"
+        variant="secondary"
+        onClick={() => setUpdateUser(user)}
+      >
+        Deshacer cambios
       </Button>
       {BotonCancelar}
     </form>
