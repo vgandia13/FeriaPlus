@@ -14,11 +14,11 @@ export const adminService = {
     return response.data;
   },
 
-  deleteUser: async (id: string): Promise<void> => {
+  deleteUser: async (id: number): Promise<void> => {
     await api.delete(`/admin/usuarios/${id}`);
   },
 
-  getUser: async (id: string): Promise<UsuarioResponseDTO> => {
+  getUser: async (id: number): Promise<UsuarioResponseDTO> => {
     const response = await api.get(`/admin/usuarios/${id}`);
     return response.data;
   },

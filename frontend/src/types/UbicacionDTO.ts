@@ -1,9 +1,9 @@
-import { EventoDTO } from "./EventoDTO";
+import { EventoDTO } from './EventoDTO';
 
 export interface UbicacionDTO {
-  id: string;
+  id: number;
   nombre: string;
   latitud: number;
   longitud: number;
-  eventos: EventoDTO[];
+  eventos?: EventoDTO[];
 }

@@ -1,7 +1,7 @@
-import { Rol } from "./Rol";
+import { Rol } from './Rol';
 
 export interface UsuarioResponseDTO {
-  id: string;
+  id: number;
   nombre: string;
   email: string;
   rol: Rol;

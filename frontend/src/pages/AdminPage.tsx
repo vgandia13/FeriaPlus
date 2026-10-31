@@ -119,7 +119,7 @@ const AdminPage = () => {
     setPage(0);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await adminService.deleteUser(id);
       toast.success("Usuario eliminado correctamente.");

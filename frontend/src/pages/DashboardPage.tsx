@@ -181,7 +181,7 @@ const DashboardPage = () => {
                 {dashboardData.puestos.map((puesto) => (
                   <div key={puesto.id} className="p-4 bg-secondary rounded-md">
                     <p className="font-bold">{puesto.nombre}</p>
-                    <p className="text-sm">{puesto.descripcion}</p>
+                    <p className="text-sm">{puesto.dimensiones}</p>
                     <p className="text-sm font-semibold mt-1">
                       Precio: {puesto.precio}€
                     </p>

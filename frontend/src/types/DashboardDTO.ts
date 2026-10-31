@@ -19,7 +19,7 @@ export interface DashboardDTO {
     | Array<{
         id: number;
         nombre: string;
-        descripcion: string;
+        dimensiones: string;
         precio: number;
       }>
     | [];
