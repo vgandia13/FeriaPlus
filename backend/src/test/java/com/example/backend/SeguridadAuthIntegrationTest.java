@@ -114,6 +114,18 @@ class SeguridadAuthIntegrationTest {
     }
 
     @Test
+    void noSeOrdenaPorPassword() throws Exception {
+        mockMvc.perform(get("/api/eventos?sort=organizador.password"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void laListaBlancaNoBloqueaLoValido() throws Exception {
+        mockMvc.perform(get("/api/eventos?sort=fecha,desc"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void loginConContenidoRotoDaBadRequest() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

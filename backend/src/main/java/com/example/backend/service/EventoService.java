@@ -2,9 +2,11 @@ package com.example.backend.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.mapper.UbicacionMapper;
@@ -12,6 +14,7 @@ import com.example.backend.DTO.EventoDTO;
 import com.example.backend.DTO.ResenaDTO;
 import com.example.backend.exception.EventoNoEncontradoException;
 import com.example.backend.exception.NoAutorizadoException;
+import com.example.backend.exception.OrdenInvalidoException;
 import com.example.backend.exception.UbicacionNoEncontradaException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
 import com.example.backend.model.Evento;
@@ -34,8 +37,14 @@ public class EventoService {
     private final CategoriaRepository categoriaRepository;
     private final UbicacionMapper ubicacionMapper;
     private final UbicacionRepository ubicacionRepository;
+    private static final Set<String> CAMPOS_ORDEN = Set.of("nombre", "fecha", "id");
 
     public Page<EventoDTO> obtenerTodos(String nombre, Pageable pageable) {
+        for (Sort.Order orden : pageable.getSort()) {
+            if (!CAMPOS_ORDEN.contains(orden.getProperty())) {
+                throw new OrdenInvalidoException("Campo de ordenacion inválido");
+            }
+        }
         Page<Evento> eventos;
         if (nombre != null && !nombre.isBlank()) {
             eventos = eventoRepository.findByNombreContainingIgnoreCase(nombre, pageable);
