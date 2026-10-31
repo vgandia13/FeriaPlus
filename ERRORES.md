@@ -68,7 +68,7 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
     - Limpieza de los volúmenes huérfanos ya creados: `docker volume prune` (borra **todos** los volúmenes sin contenedor, revisar antes con `docker volume ls -f dangling=true`).
 
 - [ ] **3.10 🟠 El healthcheck del backend siempre falla**
-  - **Problema:** `docker-compose.yml:34` hace `curl -f /actuator/health`, que da 403 porque esa ruta exige autenticación. El contenedor queda "unhealthy" para siempre (no se nota porque nada depende de él).
+  - **Problema:** `docker-compose.yml:34` hace `curl -f /actuator/health`, que da 401 porque esa ruta exige autenticación (comprobado el 2026-10-31). El contenedor queda "unhealthy" para siempre (no se nota porque nada depende de él).
   - **Solución:**
     - **A)** `.requestMatchers("/actuator/health").permitAll()` en `SecurityConfig`, junto con 3.4.
     - **B)** Exponer el actuator en un puerto de gestión aparte (`management.server.port=8081`), no publicado en el host.
