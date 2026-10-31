@@ -95,7 +95,7 @@ public class UsuarioService {
                     dto.setId(e.getId());
                     dto.setNombre(e.getNombre());
                     dto.setDescripcion(e.getDescripcion());
-                    dto.setFecha(e.getFecha().toString());
+                    dto.setFecha(e.getFecha() != null ? e.getFecha().toString() : null);
                     dto.setImagenUrl(e.getImagenUrl());
                     if (e.getCategoria() != null)
                         dto.setCategoriaId(e.getCategoria().getId());
