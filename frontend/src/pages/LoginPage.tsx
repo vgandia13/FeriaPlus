@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { useData } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
+import { Label } from "@/components/ui/label";
 
 const LoginPage = () => {
   const { setUsuario, setIsLogged } = useData();
@@ -32,7 +33,13 @@ const LoginPage = () => {
     try {
       const response = await AuthService.login(payload);
       localStorage.setItem("token", response.token);
-      setUsuario(response.usuario as { name: string; email: string; rol: import("@/types/Rol").Rol });
+      setUsuario(
+        response.usuario as {
+          name: string;
+          email: string;
+          rol: import("@/types/Rol").Rol;
+        },
+      );
       console.log("Login exitoso");
       toast("Login exitoso", {
         description: "Bienvenido a Feria+",
@@ -61,17 +68,26 @@ const LoginPage = () => {
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
+              <Label htmlFor="email" id="email" className="text-sm font-medium">
+                Email
+              </Label>
               <Input
                 type="email"
                 placeholder="nombre@ejemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Contraseña</label>
+              <Label
+                htmlFor="password"
+                id="password"
+                className="text-sm font-medium"
+              >
+                Contraseña
+              </Label>
               <div className="relative flex items-center pb-2 py-2 mb-2">
                 <Input
                   type={showPassword ? "text" : "password"}
@@ -80,11 +96,16 @@ const LoginPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pr-10"
                   required
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-zinc-900 transition-colors focus:outline-none"
+                  aria-label={
+                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                  }
+                  aria-pressed={showPassword}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-zinc-900 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {showPassword ? (
                     <FaRegEyeSlash size={18} />
