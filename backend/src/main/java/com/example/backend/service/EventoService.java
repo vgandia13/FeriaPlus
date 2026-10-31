@@ -12,12 +12,14 @@ import com.example.backend.DTO.EventoDTO;
 import com.example.backend.DTO.ResenaDTO;
 import com.example.backend.exception.EventoNoEncontradoException;
 import com.example.backend.exception.NoAutorizadoException;
+import com.example.backend.exception.UbicacionNoEncontradaException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
 import com.example.backend.model.Evento;
 import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.repository.CategoriaRepository;
 import com.example.backend.repository.EventoRepository;
+import com.example.backend.repository.UbicacionRepository;
 import com.example.backend.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class EventoService {
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
     private final UbicacionMapper ubicacionMapper;
+    private final UbicacionRepository ubicacionRepository;
 
     public Page<EventoDTO> obtenerTodos(String nombre, Pageable pageable) {
         Page<Evento> eventos;
@@ -128,9 +131,14 @@ public class EventoService {
         if(dto.getFecha() != null){
             evento.setFecha(LocalDate.parse(dto.getFecha()));
         }
-        evento.setUbicacion(dto.getUbicacion() != null ? ubicacionMapper.ubicacionDTOToUbicacion(dto.getUbicacion()) : null);
+        if (dto.getUbicacion() == null || dto.getUbicacion().getId() == null) {
+            throw new UbicacionNoEncontradaException("Falta la ubicacion");
+        }
+        evento.setUbicacion(ubicacionRepository.findById(dto.getUbicacion().getId())
+            .orElseThrow(() -> new UbicacionNoEncontradaException("Ubicación no encontrada")));
+        
         evento.setImagenUrl(dto.getImagenUrl());
-
+        
         if(dto.getCategoriaId() != null){
             evento.setCategoria(categoriaRepository.findById(dto.getCategoriaId()).orElse(null));
         }

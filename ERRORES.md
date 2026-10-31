@@ -2,10 +2,10 @@
 
 > Archivo versionado (desde 2026-10-26) para seguir el trabajo entre dispositivos.
 > Solo **fallos** de la aplicación (incluidos los latentes). Las recomendaciones, la deuda técnica, los tests y las funcionalidades nuevas están en `MEJORAS.md`.
-> Auditoría: 2026-10-26. Última revisión: 2026-10-30 (1.6 y 1.4 resueltos en la rama `fix/eventos`).
+> Auditoría: 2026-10-26. Última revisión: 2026-10-31 (1.6, 1.4 y 2.5 resueltos en la rama `fix/eventos`).
 > Git: `main` = `13e62a7` (PR #8, dependencias actualizadas). Tags: `v1.0.0` (Spring Boot 4.1.2) y `v1.1.0` (PR #7, rama `fix/seguridad-auth`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
-> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.19 (opción A: handlers 400/409 con mensajes fijos; el catch-all responde "Error interno" y registra el detalle con `log.error`), 2.20, 2.2 (409 con mensaje claro si el usuario tiene eventos, reservas o reseñas), 2.1 (401 en `AuthenticationException` y 403 en `AccessDeniedException`), 2.11 (el interceptor no redirige con un 401 de `/auth/*`), 2.15 (el filtro JWT ya no corta la petición; `HttpStatusEntryPoint` da 401 en rutas protegidas), 2.10 (el registro no guarda `usuario`; la Navbar exige `isLogged`), 2.22 (`ProtectedRoute` expulsa si no hay `usuario`), 4.1 (14 tests: 13 de integración con MockMvc + H2 y 1 unitario con Mockito; `h2` en scope `test`) y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`), 1.6 (opción A: `mapToEntity` ya no copia el `id`; nuevo `PUT /api/eventos/{id}` con `@PreAuthorize` ORGANIZADOR/ADMIN que solo deja editar al organizador del evento o a un ADMIN, 403 si no; edita `nombre` y `descripcion`; 4 tests nuevos, 18 en total), 1.4 (opción A: `POST /api/eventos` asigna como organizador al usuario autenticado y se ignora el `organizadorId` del JSON, que deja de ser obligatorio también en el `PUT`; no se hizo la B porque el `POST` solo lo permite a ORGANIZADOR; 1 test nuevo, 19 en total).
+> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.19 (opción A: handlers 400/409 con mensajes fijos; el catch-all responde "Error interno" y registra el detalle con `log.error`), 2.20, 2.2 (409 con mensaje claro si el usuario tiene eventos, reservas o reseñas), 2.1 (401 en `AuthenticationException` y 403 en `AccessDeniedException`), 2.11 (el interceptor no redirige con un 401 de `/auth/*`), 2.15 (el filtro JWT ya no corta la petición; `HttpStatusEntryPoint` da 401 en rutas protegidas), 2.10 (el registro no guarda `usuario`; la Navbar exige `isLogged`), 2.22 (`ProtectedRoute` expulsa si no hay `usuario`), 4.1 (14 tests: 13 de integración con MockMvc + H2 y 1 unitario con Mockito; `h2` en scope `test`) y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`), 1.6 (opción A: `mapToEntity` ya no copia el `id`; nuevo `PUT /api/eventos/{id}` con `@PreAuthorize` ORGANIZADOR/ADMIN que solo deja editar al organizador del evento o a un ADMIN, 403 si no; edita `nombre` y `descripcion`; 4 tests nuevos, 18 en total), 1.4 (opción A: `POST /api/eventos` asigna como organizador al usuario autenticado y se ignora el `organizadorId` del JSON, que deja de ser obligatorio también en el `PUT`; no se hizo la B porque el `POST` solo lo permite a ORGANIZADOR; 1 test nuevo, 19 en total), 2.5 (opción A: `mapToEntity` busca la ubicación con `ubicacionRepository.findById` y responde 404 con `UbicacionNoEncontradaException` si falta o no existe; `UbicacionDTO.id` pasa a `Long`, así que un `id` no numérico da 400; la ubicación es obligatoria al crear; no se hizo la B, crear ubicaciones al vuelo; 1 test nuevo, 20 en total).
 
 ## Cómo leer este archivo
 
@@ -17,7 +17,7 @@
 | # | Rama | Contenido | Prioridad máx. | Puntos |
 |---|---|---|---|---|
 | 1 | `fix/seguridad-auth` | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 0 |
-| 2 | `fix/eventos` (actual) | Crear/editar eventos y modelo JPA | 🟠 P2 | 8 |
+| 2 | `fix/eventos` (actual) | Crear/editar eventos y modelo JPA | 🟠 P2 | 7 |
 | 3 | `fix/config` | Docker, actuator, perfiles | 🟠 P2 | 4 |
 | 4 | `fix/frontend-ui` | HTML base, navegación, paginación, accesibilidad | 🟠 P2 | 10 |
 | 5 | `chore/limpieza-spring-boot-4` | Fallo latente en la validación | 🟢 P4 | 1 |
@@ -30,13 +30,13 @@ cd frontend; npm run lint; npm run build; cd ..
 docker compose up --build   # prueba integrada con MySQL
 ```
 
-### Estado del entorno (2026-10-30)
+### Estado del entorno (2026-10-31)
 
 | Comprobación | Resultado |
 |---|---|
 | Java 21 (Temurin 21.0.12.1) + `JAVA_HOME` | ✅ |
 | Spring Boot 4.1.2 + springdoc 3.2.0 (Hibernate 7.4, Spring 7, Security 7) | ✅ en `main` y `fix/seguridad-auth` |
-| `.\mvnw.cmd verify` (backend) | ✅ 19 tests (17 de integración + 2 unitarios) |
+| `.\mvnw.cmd verify` (backend) | ✅ 20 tests (18 de integración + 2 unitarios) |
 | `npm run lint` / `npm run build` (frontend) | ✅ 0 errores (aviso de bundle > 500 kB, ver 4.6 en `MEJORAS.md`) |
 | `npm audit` raíz y frontend | ✅ 0 vulnerabilidades |
 
@@ -52,20 +52,14 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
 
 ## 2️⃣ Rama `fix/eventos` — crear/editar eventos y modelo JPA
 
-- [ ] **2.5 🟠 Crear un evento con ubicación falla**
-  - **Problema:** `B/service/EventoService.java:131` mapea la ubicación a una entidad suelta. Ubicación nueva → `TransientPropertyValueException` (500); `id` inexistente → 500 por FK; `id` no numérico → 500 (`UbicacionDTO.id` es `String`).
-  - **Solución:**
-    - **A)** Recibir solo `ubicacionId` (Long) y hacer `ubicacionRepository.findById(...).orElseThrow(...)` → 404 si no existe.
-    - **B)** Si se quieren crear ubicaciones al vuelo: si viene sin id, guardarla antes con `ubicacionRepository.save(...)`.
-
 - [ ] **4.8 🟢 Tipos TS desalineados con el backend**
-  - **Problema:** `frontend/src/types/UsuarioResponseDTO.ts:4` y `UbicacionDTO.ts:4` declaran `id: string` (en el backend `UbicacionDTO.java:9` también es `String`); `UbicacionDTO.ts:8` exige `eventos`, que llega `null`; `DashboardDTO.ts:22` tipa los puestos con `descripcion`, pero `B/service/UsuarioService.java:109` mete ahí las `dimensiones`.
+  - **Problema:** `frontend/src/types/UsuarioResponseDTO.ts:4` y `UbicacionDTO.ts:4` declaran `id: string` (en el backend `UbicacionDTO.java:9` ya es `Long` desde 2.5); `UbicacionDTO.ts:8` exige `eventos`, que llega `null`; `DashboardDTO.ts:22` tipa los puestos con `descripcion`, pero `B/service/UsuarioService.java:109` mete ahí las `dimensiones`.
   - **Solución:**
-    - **A)** Corregir a mano: `id: number` en ambos lados (`Long` en Java), `eventos?:` opcional y renombrar a `dimensiones` en `PuestoDTO`. `organizadorId` se queda en `EventoDTO.ts`: el backend lo sigue enviando en las respuestas.
+    - **A)** Corregir a mano: `id: number` en ambos ficheros TS (`Long` en Java), `eventos?:` opcional y renombrar a `dimensiones` en `PuestoDTO`. `organizadorId` se queda en `EventoDTO.ts`: el backend lo sigue enviando en las respuestas.
     - **B)** Generar los tipos desde el OpenAPI de springdoc (`openapi-typescript`). Evita que se vuelvan a desalinear, pero añade una dependencia.
 
 - [ ] **2.21 🟠 Un evento sin ubicación deja la app en blanco**
-  - **Problema:** `frontend/src/pages/EventPage.tsx:96,146` usa `event.ubicacion.nombre` sin `?.`; el backend devuelve `ubicacion: null` y no hay ErrorBoundary.
+  - **Problema:** `frontend/src/pages/EventPage.tsx:96,146` usa `event.ubicacion.nombre` sin `?.`; el backend devuelve `ubicacion: null` en los eventos antiguos sin ubicación (desde 2.5 ya no se pueden crear nuevos) y no hay ErrorBoundary.
   - **Solución:**
     - **A)** `event.ubicacion?.nombre ?? "Sin ubicación"` (como ya hace `EventsPage.tsx:139`) y no pintar el mapa si no hay coordenadas.
     - **B)** Además: un `ErrorBoundary` en `MainLayout`, para que un fallo de render no deje toda la app en blanco.
@@ -73,7 +67,7 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
 - [ ] **2.8 🟠 NPE en el dashboard si `fecha` es null**
   - **Problema:** `B/service/UsuarioService.java:97`.
   - **Solución:**
-    - **A)** Copiar el patrón de `EventoService.java:96` (`fecha != null ? fecha.toString() : null`).
+    - **A)** Copiar el patrón de `EventoService.java:99` (`fecha != null ? fecha.toString() : null`).
     - **B)** Hacer `fecha` obligatoria (`@Column(nullable = false)` + `@NotNull` en el DTO).
 
 - [ ] **2.17 🟠 El dashboard se queda en "Cargando…" si falla la petición**

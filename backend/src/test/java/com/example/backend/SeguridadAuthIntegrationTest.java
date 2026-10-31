@@ -202,4 +202,15 @@ class SeguridadAuthIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.organizadorId").value(idDe("organizador@gmail.com")));
     }   
+
+    @Test 
+    void seRechazaUbicacionNoExistenteAlCrearEvento() throws Exception {
+        mockMvc.perform(post("/api/eventos")
+                        .header("Authorization", "Bearer " + login("organizador@gmail.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":\"EventoTest\",\"fecha\":\"2026-12-01\","
+                            + "\"ubicacion\":{\"id\":\"" + 999 + "\"},"
+                            + "\"organizadorId\":" + idDe("organizador@gmail.com") + "}"))
+            .andExpect(status().isNotFound());
+    }
 }
