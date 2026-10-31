@@ -124,7 +124,7 @@ Base de datos poblada con éxito: 1 Organizador, 1 admin, 1 Expositor, 1 Visitan
 | Frontend (React)   | http://localhost:8081                       |
 | Backend (API REST) | http://localhost:8080                       |
 | Swagger UI         | http://localhost:8080/swagger-ui/index.html |
-| Health check       | http://localhost:8080/actuator/health (hoy responde 403, ver 3.10 en `ERRORES.md`) |
+| Health check       | http://localhost:8080/actuator/health       |
 
 ### Usuarios de prueba
 
@@ -140,14 +140,12 @@ Todos los usuarios del seeder tienen la contraseña `12345678`.
 ### Detener la aplicación
 
 ```bash
-# Pausar los contenedores (conserva los datos de la base de datos)
-docker compose stop
-
-# Eliminar los contenedores (la base de datos se pierde y el seeder la recrea en el siguiente arranque)
+# Detener los contenedores (conserva los datos en el volumen mysql_data)
 docker compose down
-```
 
-> De momento MySQL no tiene un volumen con nombre, así que `docker compose down` **borra los datos** (ver 3.12 en `ERRORES.md`). Usa `stop` / `docker compose start` si quieres conservarlos.
+# Detener y eliminar también el volumen de MySQL (reinicia la DB desde cero)
+docker compose down -v
+```
 
 ---
 
@@ -155,40 +153,32 @@ docker compose down
 
 ### Requisitos
 
-- Java 21
-- Maven 3.9+
+- Java 21 (Maven no hace falta: el proyecto trae el wrapper `mvnw`)
 - Node.js 22+
-- MySQL 8.0
+- Docker, solo para la base de datos (o un MySQL 8.0 propio)
 
-### Backend
+### Base de datos
 
-1. Crea una base de datos MySQL llamada `mydatabase`.
-2. Edita `backend/src/main/resources/application.properties` con tus credenciales locales:
-
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/mydatabase?serverTimezone=UTC
-spring.datasource.username=TU_USUARIO
-spring.datasource.password=TU_CONTRASEÑA
-```
-
-3. Desde la carpeta `backend/`, ejecuta:
+El backend se conecta por defecto a `localhost:3307`, que es el puerto que publica el contenedor de MySQL. Levanta solo ese servicio:
 
 ```bash
-./mvnw spring-boot:run
+docker compose up -d mysql
 ```
 
-### Frontend
+Si prefieres un MySQL instalado en tu equipo, crea la base de datos `mydatabase` y sobrescribe la conexión con la variable de entorno `SPRING_DATASOURCE_URL` (y `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` si no usas `root` / `rootpassword`).
 
-1. Desde la carpeta `frontend/`, instala las dependencias:
+### Backend y frontend juntos
+
+Desde la raíz del proyecto, instala las dependencias una vez y lanza los dos servidores:
 
 ```bash
 npm install
+npm install --prefix frontend
+
+npm run dev            # Linux y macOS
+npm run dev:windows    # Windows
 ```
 
-2. Lanza el servidor de desarrollo:
-
-```bash
-npm run dev
-```
+Por separado: `npm run dev:backend` (o `dev:backend-windows`) y `npm run dev:frontend`. Los scripts sin `-windows` usan `./mvnw`, que no funciona en el `cmd` con el que npm ejecuta los scripts en Windows.
 
 La aplicación estará disponible en http://localhost:5173 y apuntará al backend en http://localhost:8080.

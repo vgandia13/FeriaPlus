@@ -62,7 +62,7 @@
 
 ## 3️⃣ Rama `fix/config`
 
-- [ ] **5.4 🟢 Desactivar Swagger en producción** (va con 3.1)
+- [ ] **5.4 🟢 Desactivar Swagger en producción** (3.1 se resolvió sin perfiles, así que esto necesita crear uno o usar una variable de entorno)
   - **Problema:** springdoc 3 avisa al arrancar de que la documentación de la API está expuesta.
   - **Solución:**
     - **A)** `springdoc.api-docs.enabled=false` y `springdoc.swagger-ui.enabled=false` en el perfil de producción (o al revés: activarlos solo en `dev`).
@@ -528,7 +528,7 @@ El token de Google se usa **una vez** para saber quién es el usuario. No se gua
 
 ## ➕ Opcionales para ampliar el TFG (sin rama)
 
-- [ ] **5.6 Soporte de Docker Compose en desarrollo** (Boot 3.1) — opción A de 3.1.
+- [ ] **5.6 Soporte de Docker Compose en desarrollo** (Boot 3.1) — alternativa a la solución de 3.1 (resuelto con `localhost:3307` + `SPRING_DATASOURCE_URL` en Docker): Spring arrancaría el MySQL del compose solo, pero añade la dependencia `spring-boot-docker-compose`.
 - [ ] **5.9 Versionado de API nativo** (Spring 7) — útil si se cambia el contrato (p. ej. al quitar `organizadorId` en 1.4).
 - [ ] **5.13 DTOs como `record`** (Java 16+) — los de solo lectura (`UsuarioResponseDTO`, `DashboardDTO`, `LoginRequestDTO`).
 - [ ] **5.11 Hilos virtuales** (Boot 3.2, Java 21) — `spring.threads.virtual.enabled=true`.

@@ -8,10 +8,22 @@ services:
       MYSQL_ROOT_PASSWORD: rootpassword
     ports:
       - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-prootpassword",
+        ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -48,3 +60,5 @@ services:
 networks:
   app-network:
     driver: bridge
+volumes:
+  mysql_data:

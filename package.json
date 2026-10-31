@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "cd backend && ./mvnw spring-boot:run",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
+    "dev:backend-windows": "cd backend && .\\mvnw.cmd spring-boot:run",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:windows": "concurrently \"npm run dev:backend-windows\" \"npm run dev:frontend\""
   },
   "repository": {
     "type": "git",
