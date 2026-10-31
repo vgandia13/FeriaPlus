@@ -2,20 +2,27 @@ package com.example.backend.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.mapper.UbicacionMapper;
 import com.example.backend.DTO.EventoDTO;
 import com.example.backend.DTO.ResenaDTO;
 import com.example.backend.exception.EventoNoEncontradoException;
+import com.example.backend.exception.NoAutorizadoException;
+import com.example.backend.exception.OrdenInvalidoException;
+import com.example.backend.exception.UbicacionNoEncontradaException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
 import com.example.backend.model.Evento;
+import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.repository.CategoriaRepository;
 import com.example.backend.repository.EventoRepository;
+import com.example.backend.repository.UbicacionRepository;
 import com.example.backend.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -29,8 +36,15 @@ public class EventoService {
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
     private final UbicacionMapper ubicacionMapper;
+    private final UbicacionRepository ubicacionRepository;
+    private static final Set<String> CAMPOS_ORDEN = Set.of("nombre", "fecha", "id");
 
     public Page<EventoDTO> obtenerTodos(String nombre, Pageable pageable) {
+        for (Sort.Order orden : pageable.getSort()) {
+            if (!CAMPOS_ORDEN.contains(orden.getProperty())) {
+                throw new OrdenInvalidoException("Campo de ordenacion inválido");
+            }
+        }
         Page<Evento> eventos;
         if (nombre != null && !nombre.isBlank()) {
             eventos = eventoRepository.findByNombreContainingIgnoreCase(nombre, pageable);
@@ -46,10 +60,28 @@ public class EventoService {
                 .toList();
     }
 
-    public EventoDTO guardar(EventoDTO eventoDTO) {
+    public EventoDTO guardar(EventoDTO eventoDTO, String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                                            .orElseThrow(() -> new UsuarioNoEncontradoException("No se ha encontrado el usuario"));
         Evento evento = mapToEntity(eventoDTO);
+        evento.setOrganizador(usuario);
         Evento nuevoEvento = eventoRepository.save(evento);
         return mapToDTO(nuevoEvento);
+    }
+
+    public EventoDTO editar(Long id, EventoDTO dto, String email){
+        Evento evento = eventoRepository.findById(id)
+                        .orElseThrow(() -> new EventoNoEncontradoException("No se ha encontrado el evento"));
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                                            .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
+        boolean esAdmin = usuario.getRol() == Rol.ROLE_ADMIN;
+        if (!esAdmin && !evento.getOrganizador().getEmail().equals(email)) {
+            throw new NoAutorizadoException("No puedes editar este evento");
+        }
+        evento.setNombre(dto.getNombre());
+        evento.setDescripcion(dto.getDescripcion());
+        
+        return mapToDTO(eventoRepository.save(evento));
     }
 
     public EventoDTO obtenerPorId(Long id) {
@@ -103,20 +135,21 @@ public class EventoService {
 
     private Evento mapToEntity(EventoDTO dto) {
         Evento evento = new Evento();
-        evento.setId(dto.getId());
         evento.setNombre(dto.getNombre());
         evento.setDescripcion(dto.getDescripcion());
         if(dto.getFecha() != null){
             evento.setFecha(LocalDate.parse(dto.getFecha()));
         }
-        evento.setUbicacion(dto.getUbicacion() != null ? ubicacionMapper.ubicacionDTOToUbicacion(dto.getUbicacion()) : null);
+        if (dto.getUbicacion() == null || dto.getUbicacion().getId() == null) {
+            throw new UbicacionNoEncontradaException("Falta la ubicacion");
+        }
+        evento.setUbicacion(ubicacionRepository.findById(dto.getUbicacion().getId())
+            .orElseThrow(() -> new UbicacionNoEncontradaException("Ubicación no encontrada")));
+        
         evento.setImagenUrl(dto.getImagenUrl());
-
+        
         if(dto.getCategoriaId() != null){
             evento.setCategoria(categoriaRepository.findById(dto.getCategoriaId()).orElse(null));
-        }
-        if(dto.getOrganizadorId() != null){
-            evento.setOrganizador(usuarioRepository.findById(dto.getOrganizadorId()).orElse(null));
         }
         return evento;
     }

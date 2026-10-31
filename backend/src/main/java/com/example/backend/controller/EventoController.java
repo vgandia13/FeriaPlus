@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
+
 
 @RestController
 @RequestMapping("/api/eventos")
@@ -39,10 +41,18 @@ public class EventoController {
         return ResponseEntity.ok(eventoService.obtenerPorId(id));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ORGANIZADOR', 'ADMIN')")
+    public ResponseEntity<EventoDTO> editar(@PathVariable Long id, @Valid @RequestBody EventoDTO eventoDTO, Authentication auth) {
+        String email = auth.getName();
+        return ResponseEntity.ok(eventoService.editar(id, eventoDTO, email));
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ORGANIZADOR')")
-    public ResponseEntity<EventoDTO> crear(@Valid @RequestBody EventoDTO eventoDTO) {
-        return ResponseEntity.ok(eventoService.guardar(eventoDTO));
+    public ResponseEntity<EventoDTO> crear(@Valid @RequestBody EventoDTO eventoDTO, Authentication auth) {
+        String email = auth.getName();
+        return ResponseEntity.ok(eventoService.guardar(eventoDTO, email));
     }
 
     @PostMapping("/{id}/asistir")

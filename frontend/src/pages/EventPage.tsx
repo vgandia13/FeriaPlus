@@ -93,7 +93,7 @@ const EventPage = () => {
       />
       <p className="mt-4">{event.descripcion}</p>
       <p className="mt-2 font-semibold">
-        Ubicación: <Badge>{event.ubicacion.nombre}</Badge>
+        Ubicación: <Badge>{event.ubicacion?.nombre ?? "Sin Ubicación"}</Badge>
       </p>
       <p className="mt-2">
         Fecha: {new Date(event.fecha).toLocaleDateString()}
@@ -143,7 +143,7 @@ const EventPage = () => {
               >
                 <Popup className="bg-background">
                   <div className="bg-primary text-primary-foreground p-2 rounded-md -m-1">
-                    {event.ubicacion.nombre}
+                    {event.ubicacion?.nombre ?? "Sin Ubicación"}
                   </div>
                 </Popup>
               </Marker>

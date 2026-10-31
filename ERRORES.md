@@ -2,10 +2,10 @@
 
 > Archivo versionado (desde 2026-10-26) para seguir el trabajo entre dispositivos.
 > Solo **fallos** de la aplicación (incluidos los latentes). Las recomendaciones, la deuda técnica, los tests y las funcionalidades nuevas están en `MEJORAS.md`.
-> Auditoría: 2026-10-26. Última revisión: 2026-10-27 (3ª auditoría completa: cada punto comprobado en el código y, en el backend, reproducido con el jar en H2).
+> Auditoría: 2026-10-26. Última revisión: 2026-10-31 (1.6, 1.4, 2.5, 4.8, 2.21, 2.8, 2.17, 2.6, 2.7 y 4.12 resueltos en la rama `fix/eventos`, que queda cerrada).
 > Git: `main` = `13e62a7` (PR #8, dependencias actualizadas). Tags: `v1.0.0` (Spring Boot 4.1.2) y `v1.1.0` (PR #7, rama `fix/seguridad-auth`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
-> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.19 (opción A: handlers 400/409 con mensajes fijos; el catch-all responde "Error interno" y registra el detalle con `log.error`), 2.20, 2.2 (409 con mensaje claro si el usuario tiene eventos, reservas o reseñas), 2.1 (401 en `AuthenticationException` y 403 en `AccessDeniedException`), 2.11 (el interceptor no redirige con un 401 de `/auth/*`), 2.15 (el filtro JWT ya no corta la petición; `HttpStatusEntryPoint` da 401 en rutas protegidas), 2.10 (el registro no guarda `usuario`; la Navbar exige `isLogged`), 2.22 (`ProtectedRoute` expulsa si no hay `usuario`), 4.1 (14 tests: 13 de integración con MockMvc + H2 y 1 unitario con Mockito; `h2` en scope `test`) y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`).
+> Descartados por decisión: 1.2, 1.3, 1.5 y 3.2 (proyecto académico; el rol de organizador sigue siendo autoasignable). Resueltos: 1.1, 1.7 (opción A: `PUT /perfil/me` exige la contraseña actual + formulario `ProfileEditForm` en el Dashboard; la B, invalidar JWT antiguos, no se hizo), 2.3, 2.16 (opción B: el `subject` del JWT es el id del usuario; `@Valid` en login y perfil), 2.18 (opción A: `/error` público), 2.19 (opción A: handlers 400/409 con mensajes fijos; el catch-all responde "Error interno" y registra el detalle con `log.error`), 2.20, 2.2 (409 con mensaje claro si el usuario tiene eventos, reservas o reseñas), 2.1 (401 en `AuthenticationException` y 403 en `AccessDeniedException`), 2.11 (el interceptor no redirige con un 401 de `/auth/*`), 2.15 (el filtro JWT ya no corta la petición; `HttpStatusEntryPoint` da 401 en rutas protegidas), 2.10 (el registro no guarda `usuario`; la Navbar exige `isLogged`), 2.22 (`ProtectedRoute` expulsa si no hay `usuario`), 4.1 (14 tests: 13 de integración con MockMvc + H2 y 1 unitario con Mockito; `h2` en scope `test`) y 3.5 (seeder con emails según el rol y contraseñas `12345678`; no se hizo la B, `@Profile("dev")`), 1.6 (opción A: `mapToEntity` ya no copia el `id`; nuevo `PUT /api/eventos/{id}` con `@PreAuthorize` ORGANIZADOR/ADMIN que solo deja editar al organizador del evento o a un ADMIN, 403 si no; edita `nombre` y `descripcion`; 4 tests nuevos, 18 en total), 1.4 (opción A: `POST /api/eventos` asigna como organizador al usuario autenticado y se ignora el `organizadorId` del JSON, que deja de ser obligatorio también en el `PUT`; no se hizo la B porque el `POST` solo lo permite a ORGANIZADOR; 1 test nuevo, 19 en total), 2.5 (opción A: `mapToEntity` busca la ubicación con `ubicacionRepository.findById` y responde 404 con `UbicacionNoEncontradaException` si falta o no existe; `UbicacionDTO.id` pasa a `Long`, así que un `id` no numérico da 400; la ubicación es obligatoria al crear; no se hizo la B, crear ubicaciones al vuelo; 1 test nuevo, 20 en total), 4.8 (opción A: `id: number` en `UbicacionDTO.ts` y `UsuarioResponseDTO.ts`, `eventos?` opcional y `dimensiones` en los puestos de `DashboardDTO.ts`, que el Dashboard ya muestra; `AdminPage` y `adminService.deleteUser` usan `number`; no se hizo la B, `openapi-typescript`), 2.21 (opción A: `EventPage.tsx:96,146` usa `event.ubicacion?.nombre ?? "Sin Ubicación"` y el mapa ya se ocultaba sin coordenadas; no se hizo la B, un `ErrorBoundary` en `MainLayout`), 2.8 (opción A: `UsuarioService.java:97` usa `fecha != null ? fecha.toString() : null`, como `EventoService`, y el Dashboard muestra "N/A"; no se hizo la B, `@Column(nullable = false)`, porque con `ddl-auto=update` habría que limpiar antes las filas con `fecha` null; el DTO ya tenía `@NotBlank`), 2.17 (opción A: `try/catch/finally` dentro de la función async, estados `loading` y `error`, mensaje en pantalla y toast si falla; `formatDate` solo con día/mes/año, por lo que el registro y la reserva tampoco muestran la hora; el `parseISO` queda para 2.24), 2.6 (opción A: `Ubicacion.eventos` sin `cascade`; no se hizo la B porque no hay endpoint para borrar ubicaciones), 2.7 (opción A: `Reserva.puesto` pasa a `@ManyToOne(fetch = LAZY)`; en MySQL hay que quitar a mano el UNIQUE antiguo de `puesto_id` con `ALTER TABLE reserva ADD INDEX idx_reserva_puesto (puesto_id), DROP INDEX <UK>` o recrear la BD), 4.12 (opción A: lista blanca `nombre`/`fecha`/`id` en `EventoService.obtenerTodos`; `OrdenInvalidoException` da 400; 2 tests nuevos, 22 en total).
 
 ## Cómo leer este archivo
 
@@ -16,8 +16,8 @@
 
 | # | Rama | Contenido | Prioridad máx. | Puntos |
 |---|---|---|---|---|
-| 1 | `fix/seguridad-auth` (actual) | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 0 |
-| 2 | `fix/eventos` | Crear/editar eventos y modelo JPA | 🔴 P1 | 10 |
+| 1 | `fix/seguridad-auth` | Usuarios, admin, auth y errores HTTP | 🔴 P1 | 0 |
+| 2 | `fix/eventos` (actual) | Crear/editar eventos y modelo JPA | 🟡 P3 | 0 |
 | 3 | `fix/config` | Docker, actuator, perfiles | 🟠 P2 | 4 |
 | 4 | `fix/frontend-ui` | HTML base, navegación, paginación, accesibilidad | 🟠 P2 | 10 |
 | 5 | `chore/limpieza-spring-boot-4` | Fallo latente en la validación | 🟢 P4 | 1 |
@@ -30,13 +30,13 @@ cd frontend; npm run lint; npm run build; cd ..
 docker compose up --build   # prueba integrada con MySQL
 ```
 
-### Estado del entorno (2026-10-27)
+### Estado del entorno (2026-10-31)
 
 | Comprobación | Resultado |
 |---|---|
 | Java 21 (Temurin 21.0.12.1) + `JAVA_HOME` | ✅ |
 | Spring Boot 4.1.2 + springdoc 3.2.0 (Hibernate 7.4, Spring 7, Security 7) | ✅ en `main` y `fix/seguridad-auth` |
-| `.\mvnw.cmd verify` (backend) | ✅ 14 tests (13 de integración + 1 unitario) |
+| `.\mvnw.cmd verify` (backend) | ✅ 22 tests (20 de integración + 2 unitarios) |
 | `npm run lint` / `npm run build` (frontend) | ✅ 0 errores (aviso de bundle > 500 kB, ver 4.6 en `MEJORAS.md`) |
 | `npm audit` raíz y frontend | ✅ 0 vulnerabilidades |
 
@@ -52,63 +52,7 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
 
 ## 2️⃣ Rama `fix/eventos` — crear/editar eventos y modelo JPA
 
-- [ ] **1.6 🔴 Cualquier ORGANIZADOR puede sobrescribir cualquier evento**
-  - **Problema:** `B/service/EventoService.java:106` copia `dto.getId()` en la entidad y `save()` hace *merge*. Un `POST /api/eventos` con `{"id":2,...}` reescribe el evento 2 (probado: 200) y, como `asistentes` llega vacío, **borra sus asistencias**.
-  - **Solución:**
-    - **A)** Al crear, ignorar el id (`evento.setId(null)`, o no copiarlo en `mapToEntity`). Para editar, añadir `PUT /api/eventos/{id}` que cargue el evento existente, compruebe que el usuario autenticado es su organizador (o ADMIN) y copie solo los campos editables.
-    - **B)** Quitar `id` del DTO de entrada (un `EventoCreateDTO` sin id ni organizador).
-
-- [ ] **1.4 🔴 `organizadorId` viene del cliente**
-  - **Problema:** `B/controller/EventoController.java:44` + `B/service/EventoService.java:118-119`. Un ORGANIZADOR puede crear eventos a nombre de cualquier usuario (probado con un VISITANTE como organizador).
-  - **Solución:**
-    - **A)** Recibir `Authentication`/`Principal` en el controlador, buscar el usuario por email y asignarlo como organizador; ignorar `organizadorId` del DTO.
-    - **B)** Si un ADMIN debe poder crear eventos para otros: aceptar `organizadorId` solo cuando el rol sea ADMIN y comprobar que el destino es ORGANIZADOR.
-
-- [ ] **2.5 🟠 Crear un evento con ubicación falla**
-  - **Problema:** `B/service/EventoService.java:112` mapea la ubicación a una entidad suelta. Ubicación nueva → `TransientPropertyValueException` (500); `id` inexistente → 500 por FK; `id` no numérico → 500 (`UbicacionDTO.id` es `String`).
-  - **Solución:**
-    - **A)** Recibir solo `ubicacionId` (Long) y hacer `ubicacionRepository.findById(...).orElseThrow(...)` → 404 si no existe.
-    - **B)** Si se quieren crear ubicaciones al vuelo: si viene sin id, guardarla antes con `ubicacionRepository.save(...)`.
-
-- [ ] **4.8 🟢 Tipos TS desalineados con el backend** (hacer junto con 1.4)
-  - **Problema:** `frontend/src/types/UsuarioResponseDTO.ts:4` y `UbicacionDTO.ts:4` declaran `id: string` (en el backend `UbicacionDTO.java:9` también es `String`); `UbicacionDTO.ts:8` exige `eventos`, que llega `null`; `DashboardDTO.ts:22` tipa los puestos con `descripcion`, pero `B/service/UsuarioService.java:109` mete ahí las `dimensiones`; `EventoDTO.ts:12` exige `organizadorId`, que desaparecerá con 1.4.
-  - **Solución:**
-    - **A)** Corregir a mano: `id: number` en ambos lados (`Long` en Java), `eventos?:` opcional, renombrar a `dimensiones` en `PuestoDTO` y quitar `organizadorId` del tipo de entrada.
-    - **B)** Generar los tipos desde el OpenAPI de springdoc (`openapi-typescript`). Evita que se vuelvan a desalinear, pero añade una dependencia.
-
-- [ ] **2.21 🟠 Un evento sin ubicación deja la app en blanco**
-  - **Problema:** `frontend/src/pages/EventPage.tsx:96,146` usa `event.ubicacion.nombre` sin `?.`; el backend devuelve `ubicacion: null` y no hay ErrorBoundary.
-  - **Solución:**
-    - **A)** `event.ubicacion?.nombre ?? "Sin ubicación"` (como ya hace `EventsPage.tsx:139`) y no pintar el mapa si no hay coordenadas.
-    - **B)** Además: un `ErrorBoundary` en `MainLayout`, para que un fallo de render no deje toda la app en blanco.
-
-- [ ] **2.8 🟠 NPE en el dashboard si `fecha` es null**
-  - **Problema:** `B/service/UsuarioService.java:97`.
-  - **Solución:**
-    - **A)** Copiar el patrón de `EventoService.java:76` (`fecha != null ? fecha.toString() : null`).
-    - **B)** Hacer `fecha` obligatoria (`@Column(nullable = false)` + `@NotNull` en el DTO).
-
-- [ ] **2.17 🟠 El dashboard se queda en "Cargando…" si falla la petición**
-  - **Problema:** `frontend/src/pages/DashboardPage.tsx:32-39` no tiene `try/catch`. Además, `formatDate` (`:17-26`) añade la hora: `"2026-10-31"` sale como `31/10/2026, 01:00`.
-  - **Solución:**
-    - **A)** `try/catch/finally` con un estado `error` y un mensaje en pantalla; `formatDate` solo con día/mes/año y `parseISO` (ver 2.24).
-
-- [ ] **4.12 🟡 El ordenamiento público acepta propiedades anidadas**
-  - **Problema:** `B/controller/EventoController.java:33`: `?sort=organizador.password` funciona (ordena por el hash bcrypt).
-  - **Solución:**
-    - **A)** Lista blanca: comprobar que cada `Sort.Order` sea `nombre`, `fecha` o `id`; si no, 400.
-    - **B)** Quitar `Pageable` libre y aceptar solo `?orden=fecha|nombre`.
-
-- [ ] **2.7 🟡 `Reserva` ↔ `Puesto` inconsistente**
-  - **Problema:** `B/model/Reserva.java:27-28` usa `@OneToOne` (Hibernate crea UNIQUE en `puesto_id`: un puesto solo admite una reserva en toda su vida, aunque se cancele), pero `Puesto` declara `@OneToMany reservas`. (Aún no hay endpoints de reservas.)
-  - **Solución:**
-    - **A)** Cambiar a `@ManyToOne` en `Reserva.puesto`. Con `ddl-auto=update` la UNIQUE antigua **no** se borra: eliminarla a mano en MySQL o recrear la BD.
-
-- [ ] **2.6 🟢 (latente) Borrar una ubicación borraría sus eventos**
-  - **Problema:** `B/model/Ubicacion.java:34` (`CascadeType.ALL`). Hoy ningún endpoint borra ubicaciones.
-  - **Solución:**
-    - **A)** Quitar el `cascade` (o dejar solo `PERSIST`/`MERGE`).
-    - **B)** Si se añade un borrado de ubicaciones: responder 409 cuando tenga eventos.
+Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera). Pendiente de PR a `main`.
 
 ---
 
@@ -177,10 +121,10 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
     - **B)** Exponer `resolvedTheme` desde `ThemeProvider` y usarlo en los dos sitios.
 
 - [ ] **2.24 🟡 Las fechas de solo día se interpretan en UTC**
-  - **Problema:** `EventsPage.tsx:140`, `CarruselEventos.tsx:105` y `EventPage.tsx:99`: `new Date("2026-10-31")` muestra el 30/10 en zonas con desfase negativo (en España sale bien).
+  - **Problema:** `EventsPage.tsx:140`, `CarruselEventos.tsx:105`, `EventPage.tsx:99` y `formatDate` de `DashboardPage.tsx`: `new Date("2026-10-31")` muestra el 30/10 en zonas con desfase negativo (en España sale bien).
   - **Solución:**
     - **A)** `parseISO` de `date-fns` (ya instalado), que interpreta la fecha en hora local.
-    - **B)** Una función `formatDate` común en `lib/` y usarla en todas las páginas (incluido 2.17).
+    - **B)** Una función `formatDate` común en `lib/` y usarla en todas las páginas (incluidos el Dashboard y `AdminPage`).
 
 - [ ] **4.7 🟡 Accesibilidad**
   - **Problema:**

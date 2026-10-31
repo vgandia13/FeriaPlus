@@ -6,7 +6,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
@@ -31,6 +30,6 @@ public class Ubicacion {
     @Column(nullable = false)
     private Double longitud;
 
-    @OneToMany(mappedBy = "ubicacion", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "ubicacion")
     private List<Evento> eventos;
 }

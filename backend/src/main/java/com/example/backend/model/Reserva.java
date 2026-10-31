@@ -24,7 +24,7 @@ public class Reserva {
     @JoinColumn(name = "expositor_id", nullable = false)
     private Usuario expositor;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "puesto_id", nullable = false)
     private Puesto puesto;
 }
