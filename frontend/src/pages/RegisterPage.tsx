@@ -150,9 +150,11 @@ const RegisterPage = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Rol</label>
-              <Select onValueChange={setRol}>
-                <SelectTrigger className="w-full">
+              <label htmlFor="rol" className="text-sm font-medium">
+                Rol
+              </label>
+              <Select value={rol} onValueChange={setRol}>
+                <SelectTrigger id="rol" className="w-full">
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent>
