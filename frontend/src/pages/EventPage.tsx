@@ -10,6 +10,7 @@ import L from "leaflet";
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import { useTheme } from "@/components/theme-provider";
+import { formatDate } from "@/lib/fechas";
 
 const defaultIcon = L.icon({
   iconUrl,
@@ -22,9 +23,9 @@ L.Marker.prototype.options.icon = defaultIcon;
 
 const EventPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [event, setEvent] = useState<EventoDTO | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const lat = event?.ubicacion?.latitud;
   const lng = event?.ubicacion?.longitud;
   const posicionValida = lat !== undefined && lng !== undefined;
@@ -40,7 +41,7 @@ const EventPage = () => {
   const mapRef = useRef<L.Map | null>(null);
 
   const tileUrl =
-    theme === "dark"
+    resolvedTheme === "dark"
       ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
@@ -52,15 +53,19 @@ const EventPage = () => {
 
   useEffect(() => {
     const loadEvent = async () => {
-      if (!id) return;
+      if (!id) {
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
+
       try {
         const data = await EventoService.obtenerPorId(Number(id));
         setEvent(data);
-        console.log(data);
       } catch (error) {
         console.error("Error al cargar el evento", error);
+        setEvent(null);
         toast.error("No se pudo cargar el evento.");
       } finally {
         setLoading(false);
@@ -78,7 +83,7 @@ const EventPage = () => {
 
       return () => clearTimeout(timeout);
     }
-  }, [posicionValida, event, theme]);
+  }, [posicionValida, event, resolvedTheme]);
 
   if (loading) return <div>Cargando evento...</div>;
   if (!event) return <div>Evento no encontrado.</div>;
@@ -95,9 +100,7 @@ const EventPage = () => {
       <p className="mt-2 font-semibold">
         Ubicación: <Badge>{event.ubicacion?.nombre ?? "Sin Ubicación"}</Badge>
       </p>
-      <p className="mt-2">
-        Fecha: {new Date(event.fecha).toLocaleDateString()}
-      </p>
+      <p className="mt-2">Fecha: {formatDate(event.fecha)}</p>
 
       {event.resenas && event.resenas.length > 0 && (
         <div className="mt-8">
@@ -139,7 +142,7 @@ const EventPage = () => {
 
               <Marker
                 position={[lat, lng]}
-                icon={theme === "light" ? defaultIcon : darkIcon}
+                icon={resolvedTheme === "dark" ? darkIcon : defaultIcon}
               >
                 <Popup className="bg-background">
                   <div className="bg-primary text-primary-foreground p-2 rounded-md -m-1">

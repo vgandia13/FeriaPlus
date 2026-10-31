@@ -21,6 +21,7 @@ import { UsuarioRegistro } from "@/types/UsuarioRegistro";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { Rol } from "@/types/Rol";
 import { useNavigate } from "react-router-dom";
+import { Label } from "@/components/ui/label";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -81,27 +82,43 @@ const RegisterPage = () => {
         <form onSubmit={handleRegister}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Nombre de Usuario</label>
+              <Label
+                htmlFor="nombre"
+                id="nombre"
+                className="text-sm font-medium"
+              >
+                Nombre de Usuario
+              </Label>
               <Input
                 type="text"
                 placeholder="Tu nombre de usuario"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                autoComplete="username"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
+              <Label htmlFor="email" id="email" className="text-sm font-medium">
+                Email
+              </Label>
               <Input
                 type="email"
                 placeholder="Tu email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Contraseña</label>
+              <Label
+                htmlFor="password"
+                id="password"
+                className="text-sm font-medium"
+              >
+                Contraseña
+              </Label>
               <div className="relative flex items-center pb-2 py-2">
                 <Input
                   type={showPassword ? "text" : "password"}
@@ -109,11 +126,16 @@ const RegisterPage = () => {
                   placeholder="Introduce tu contraseña (mínimo 8 caracteres)"
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
+                  aria-label={
+                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                  }
+                  aria-pressed={showPassword}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-zinc-900 transition-colors focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-zinc-900 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {showPassword ? (
                     <FaRegEyeSlash size={18} />
@@ -124,9 +146,13 @@ const RegisterPage = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <Label
+                htmlFor="confirmPassword"
+                id="confirmPassword"
+                className="text-sm font-medium"
+              >
                 Confirma tu contraseña
-              </label>
+              </Label>
               <div className="relative flex items-center pb-2 py-2">
                 <Input
                   type={showConfirmPassword ? "text" : "password"}
@@ -135,11 +161,18 @@ const RegisterPage = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pr-10"
                   required
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
+                  aria-label={
+                    showConfirmPassword
+                      ? "Ocultar contraseña"
+                      : "Mostrar contraseña"
+                  }
+                  aria-pressed={showConfirmPassword}
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-zinc-900 transition-colors focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-zinc-900 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {showConfirmPassword ? (
                     <FaRegEyeSlash size={18} />
@@ -150,9 +183,11 @@ const RegisterPage = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Rol</label>
-              <Select onValueChange={setRol}>
-                <SelectTrigger className="w-full">
+              <Label htmlFor="rol" className="text-sm font-medium">
+                Rol
+              </Label>
+              <Select value={rol} onValueChange={setRol}>
+                <SelectTrigger id="rol" className="w-full">
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent>

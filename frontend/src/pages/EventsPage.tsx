@@ -16,13 +16,9 @@ import {
 } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Pagination,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Paginacion } from "@/components/Paginacion";
+import { formatDate } from "@/lib/fechas";
 
 const EventsPage = () => {
   const [events, setEvents] = useState<EventoDTO[]>([]);
@@ -33,7 +29,6 @@ const EventsPage = () => {
   const [loading, setLoading] = useState(false);
 
   const loadEvents = async (nombre: string, p: number) => {
-
     setLoading(true);
     try {
       const data = await EventoService.getAll({ nombre, page: p, size: 9 });
@@ -137,8 +132,13 @@ const EventsPage = () => {
                 </CardContent>
                 <CardFooter className="flex flex-col items-start gap-2 text-sm text-muted-foreground pt-4 border-t">
                   <p>📍 {event.ubicacion?.nombre ?? "Sin Ubicación"}</p>
-                  <p>📅 {new Date(event.fecha).toLocaleDateString()}</p>
-                  <Link className="text-primary hover:underline" to={`/events/${event.id}`}>Ver más</Link>
+                  <p>📅 {formatDate(event.fecha)}</p>
+                  <Link
+                    className="text-primary hover:underline"
+                    to={`/events/${event.id}`}
+                  >
+                    Ver más
+                  </Link>
                 </CardFooter>
               </Card>
             ))}
@@ -150,40 +150,11 @@ const EventsPage = () => {
       </div>
 
       <div className="mt-8">
-        <Pagination className="flex items-center align-middle justify-center">
-          <Button variant={"ghost"} onClick={() => setPage(0)}>
-            <ChevronsLeft
-              className={
-                page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"
-              }
-            />
-          </Button>
-          <PaginationPrevious
-            className={
-              page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"
-            }
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-          />
-          <span className="mx-4 flex items-center text-sm font-medium">
-            Página {page + 1} de {totalPages || 1}
-          </span>
-          <PaginationNext
-            className={
-              page >= totalPages - 1
-                ? "pointer-events-none opacity-50"
-                : "cursor-pointer"
-            }
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-          />
-          <Button variant={"ghost"}>
-            <ChevronsRight
-            onClick={() => setPage(totalPages - 1)}
-              className={
-                page >= totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"
-              }
-            />
-          </Button>
-        </Pagination>
+        <Paginacion
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );

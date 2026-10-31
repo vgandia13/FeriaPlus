@@ -1,12 +1,16 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Feria+</title>
     <script>
       try {
         let theme = localStorage.getItem("feriaplus-theme");
         if (
           theme === "dark" ||
-          (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)
+          ((!theme || theme === "system") &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
         ) {
           document.documentElement.classList.add("dark");
         } else {

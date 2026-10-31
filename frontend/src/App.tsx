@@ -22,12 +22,10 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/events" element={<EventsPage />} />
-
+          <Route path="/events/:id" element={<EventPage />} />
           <Route element={<ProtectedRoute />}>
-            <Route path="/events/:id" element={<EventPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
           </Route>
-
           {/*TODO: rutas para organizadores y admin */}
           {/* Ruta de admin */}
           <Route element={<ProtectedRoute allowedRoles={[Rol.ROLE_ADMIN]} />}>

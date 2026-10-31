@@ -14,15 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import ProfileEditForm from "./ProfileEditForm";
 import { toast } from "sonner";
-
-export const formatDate = (ISOdate?: string) =>
-  ISOdate
-    ? new Date(ISOdate).toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })
-    : "N/A";
+import { formatDate } from "@/lib/fechas";
 
 const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState<DashboardDTO>();
@@ -35,7 +27,7 @@ const DashboardPage = () => {
       try {
         setDashboardData(await userService.getDashboardData());
       } catch {
-        toast.error("Intente de nuevo.");
+        toast.error("Inténtalo de nuevo.");
         setError("No se pudo cargar el dashboard.");
       } finally {
         setLoading(false);
@@ -76,7 +68,13 @@ const DashboardPage = () => {
                     user={dashboardData.usuario}
                     onSuccess={async () => {
                       setEditOpen(false);
-                      setDashboardData(await userService.getDashboardData());
+                      try {
+                        setDashboardData(await userService.getDashboardData());
+                      } catch {
+                        toast.error(
+                          "Perfil guardado, pero no se pudo recargar el panel",
+                        );
+                      }
                     }}
                     BotonCancelar={
                       <DialogClose asChild>

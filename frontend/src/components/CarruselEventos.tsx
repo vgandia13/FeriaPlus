@@ -19,9 +19,13 @@ import { EventoService } from "@/services/eventoService";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
+import { formatDate } from "@/lib/fechas";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const CarruselEventos = () => {
   const [eventos, setEventos] = useState<EventoDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const loadEventos = async () => {
@@ -31,14 +35,43 @@ const CarruselEventos = () => {
         setEventos(response.content.slice(0, 5));
       } catch (error) {
         console.error("Error de red al cargar eventos destacados", error);
+        setError(true);
         toast.error(
           "No se pudieron cargar los eventos destacados. Por favor, inténtalo de nuevo más tarde.",
         );
+      } finally {
+        setLoading(false);
       }
     };
 
     loadEventos();
   }, []);
+
+  if (loading) {
+    return (
+      <section className="w-full py-12">
+        <h2 className="text-2xl font-bold mb-8 text-center">
+          Eventos Destacados
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto px-4">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-72 w-full rounded-xl" />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="w-full py-12 text-center">
+        <h2 className="text-2xl font-bold mb-4">Eventos Destacados</h2>
+        <p className="text-muted-foreground">
+          No se pudieron cargar los eventos destacados.
+        </p>
+      </section>
+    );
+  }
 
   if (eventos.length === 0) {
     return (
@@ -102,7 +135,7 @@ const CarruselEventos = () => {
 
                   <CardFooter className="flex justify-between items-center mt-auto border-t pt-4">
                     <span className="text-sm font-semibold">
-                      {new Date(evento.fecha).toLocaleDateString()}
+                      {formatDate(evento.fecha)}
                     </span>
                     <Button
                       variant={"link"}

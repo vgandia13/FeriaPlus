@@ -6,6 +6,27 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { adminService } from "@/services/adminService";
+import { useEffect, useState } from "react";
+import { UsuarioResponseDTO } from "@/types/UsuarioResponseDTO";
+import { Button } from "@/components/ui/button";
+import {
+  InputGroup,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import AdminEditForm from "./AdminEditForm";
+import { Paginacion } from "@/components/Paginacion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,32 +38,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
-import { adminService } from "@/services/adminService";
-import { useEffect, useState } from "react";
-import { UsuarioResponseDTO } from "@/types/UsuarioResponseDTO";
-import { Button } from "@/components/ui/button";
-import {
-  Pagination,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { ChevronsLeft, ChevronsRight } from "lucide-react";
-import {
-  InputGroup,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import AdminEditForm from "./AdminEditForm";
+import { formatFechaHora } from "@/lib/fechas";
 
 const ROL_LABELS: Record<string, string> = {
   ROLE_ADMIN: "Admin",
@@ -50,15 +46,6 @@ const ROL_LABELS: Record<string, string> = {
   ROLE_VISITANTE: "Visitante",
   ROLE_EXPOSITOR: "Expositor",
 };
-
-export const formatDate = (ISOdate: string) =>
-  new Date(ISOdate).toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 
 const AdminPage = () => {
   const [users, setUsers] = useState<UsuarioResponseDTO[]>([]);
@@ -68,6 +55,7 @@ const AdminPage = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [editando, setEditando] = useState<UsuarioResponseDTO | null>(null);
 
   const loadUsers = async (nombre: string, p: number) => {
     setLoading(true);
@@ -124,8 +112,13 @@ const AdminPage = () => {
       await adminService.deleteUser(id);
       toast.success("Usuario eliminado correctamente.");
       const dataFetch = await loadUsers(debouncedSearchTerms, page);
+      const nuevasPaginas = dataFetch.page.totalPages;
+      if (page > 0 && page >= nuevasPaginas) {
+        setPage(Math.max(0, nuevasPaginas - 1));
+        return;
+      }
       setUsers(dataFetch.content);
-      setTotalPages(dataFetch.page.totalPages);
+      setTotalPages(nuevasPaginas);
       setTotalElements(dataFetch.page.totalElements);
     } catch (error) {
       console.error(error);
@@ -219,7 +212,7 @@ const AdminPage = () => {
                     {ROL_LABELS[user.rol] ?? user.rol}
                   </TableCell>
                   <TableCell className="border-r border-border text-center">
-                    {formatDate(user.fechaRegistro)}
+                    {formatFechaHora(user.fechaRegistro)}
                   </TableCell>
                   <TableCell className="text-center">
                     <AlertDialog>
@@ -247,40 +240,13 @@ const AdminPage = () => {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="secondary" className="ml-2">
-                          Editar
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent
-                        aria-describedby="Formulario de edicion de usuario"
-                        className="w-auto"
-                      >
-                        <DialogHeader>
-                          <DialogTitle>Editar Usuario</DialogTitle>
-                        </DialogHeader>
-                        <AdminEditForm
-                          user={user}
-                          onSuccess={async () => {
-                            const data = await loadUsers(
-                              debouncedSearchTerms,
-                              page,
-                            );
-                            setUsers(data.content);
-                            setTotalPages(data.page.totalPages);
-                            setTotalElements(data.page.totalElements);
-                            // Cierra el diálogo programáticamente si fuera necesario,
-                            // pero DialogClose en el BotonCancelar ya debería manejarlo.
-                          }}
-                          BotonCancelar={
-                            <DialogClose asChild>
-                              <Button>Cancelar</Button>
-                            </DialogClose>
-                          }
-                        />
-                      </DialogContent>
-                    </Dialog>
+                    <Button
+                      variant="secondary"
+                      className="ml-2"
+                      onClick={() => setEditando(user)}
+                    >
+                      Editar
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -290,43 +256,42 @@ const AdminPage = () => {
       </div>
 
       <div className="flex justify-end mt-8">
-        <Pagination className="flex items-center align-middle justify-center">
-          <Button variant={"ghost"} onClick={() => setPage(0)}>
-            <ChevronsLeft
-              className={
-                page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"
-              }
-            />
-          </Button>
-          <PaginationPrevious
-            className={
-              page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"
-            }
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-          />
-          <span className="mx-4 flex items-center text-sm font-medium">
-            Página {page + 1} de {totalPages || 1}
-          </span>
-          <PaginationNext
-            className={
-              page >= totalPages - 1
-                ? "pointer-events-none opacity-50"
-                : "cursor-pointer"
-            }
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-          />
-          <Button variant={"ghost"}>
-            <ChevronsRight
-              onClick={() => setPage(totalPages - 1)}
-              className={
-                page >= totalPages - 1
-                  ? "pointer-events-none opacity-50"
-                  : "cursor-pointer"
-              }
-            />
-          </Button>
-        </Pagination>
+        <Paginacion
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
+      <Dialog
+        open={editando !== null}
+        onOpenChange={(abierto) => !abierto && setEditando(null)}
+      >
+        <DialogContent className="w-auto">
+          <DialogHeader>
+            <DialogTitle>Editar usuario</DialogTitle>
+            <DialogDescription>
+              Cambia el nombre, el correo o el rol del usuario.
+            </DialogDescription>
+          </DialogHeader>
+          {editando && (
+            <AdminEditForm
+              user={editando}
+              onSuccess={async () => {
+                setEditando(null);
+                const data = await loadUsers(debouncedSearchTerms, page);
+                setUsers(data.content);
+                setTotalPages(data.page.totalPages);
+                setTotalElements(data.page.totalElements);
+              }}
+              BotonCancelar={
+                <DialogClose asChild>
+                  <Button type="button">Cancelar</Button>
+                </DialogClose>
+              }
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
