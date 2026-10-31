@@ -225,4 +225,12 @@ class SeguridadAuthIntegrationTest {
                             + "\"organizadorId\":" + idDe("organizador@gmail.com") + "}"))
             .andExpect(status().isNotFound());
     }
+
+    @Test
+    void healthEsPublicoYSinDetalles() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.components").doesNotExist());
+    }
 }

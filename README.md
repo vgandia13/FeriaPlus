@@ -124,7 +124,7 @@ Base de datos poblada con éxito: 1 Organizador, 1 admin, 1 Expositor, 1 Visitan
 | Frontend (React)   | http://localhost:8081                       |
 | Backend (API REST) | http://localhost:8080                       |
 | Swagger UI         | http://localhost:8080/swagger-ui/index.html |
-| Health check       | http://localhost:8080/actuator/health (hoy responde 401, ver 3.10 en `ERRORES.md`) |
+| Health check       | http://localhost:8080/actuator/health       |
 
 ### Usuarios de prueba
 
