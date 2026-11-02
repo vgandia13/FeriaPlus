@@ -233,4 +233,13 @@ class SeguridadAuthIntegrationTest {
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(jsonPath("$.components").doesNotExist());
     }
+
+    @Test
+    void noSeCambiaEmailSinContrasena() throws Exception {
+        mockMvc.perform(put("/api/perfil/me")
+                        .header("Authorization", "Bearer " + login("carlos@gmail.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":\"Carlos\",\"email\":\"carlos_nuevo@gmail.com\"}"))
+                .andExpect(status().isForbidden());
+    }
 }
