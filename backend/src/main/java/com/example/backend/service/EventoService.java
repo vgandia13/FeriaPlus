@@ -80,6 +80,9 @@ public class EventoService {
         }
         evento.setNombre(dto.getNombre());
         evento.setDescripcion(dto.getDescripcion());
+        evento.setFecha(LocalDate.parse(dto.getFecha(), java.time.format.DateTimeFormatter.ISO_LOCAL_DATE));
+        evento.setUbicacion(ubicacionRepository.findById(dto.getUbicacion().getId())
+            .orElseThrow(() -> new UbicacionNoEncontradaException("Ubicación no encontrada")));
         
         return mapToDTO(eventoRepository.save(evento));
     }
