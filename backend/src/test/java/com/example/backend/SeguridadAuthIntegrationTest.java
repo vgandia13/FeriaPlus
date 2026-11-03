@@ -54,7 +54,9 @@ class SeguridadAuthIntegrationTest {
     }
 
     private String eventoJson(String nombre) {
-        return "{\"nombre\":\"" + nombre + "\",\"fecha\":\"2026-12-01\",\"ubicacion\":{},\"organizadorId\":1}";
+        Long ubicacionId = eventoRepository.findAll().get(0).getUbicacion().getId();
+        return "{\"nombre\":\"" + nombre + "\",\"fecha\":\"2026-12-01\","
+        + "\"ubicacion\":{\"id\":" + ubicacionId + "},\"organizadorId\":1}";
     }
 
     @Test
