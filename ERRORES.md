@@ -1,6 +1,6 @@
 # Errores a corregir — Feria+
 
-> ⚠️ **4 errores pendientes** de la auditoría de seguimiento del 2026-11-03 (rama 7 `errores-auditoria`: 1.9, 1.10, 2.27 y 2.28; 2.29 ya resuelto). El archivo sirve también como **registro** de los fallos encontrados y de cómo se resolvió cada uno (ver "Resueltos" más abajo). Las mejoras pendientes siguen en `MEJORAS.md`, que cita estos números.
+> ⚠️ **3 errores pendientes** de la auditoría de seguimiento del 2026-11-03 (rama 7 `errores-auditoria`: 1.9, 1.10 y 2.27; 2.29 y 2.28 ya resueltos). El archivo sirve también como **registro** de los fallos encontrados y de cómo se resolvió cada uno (ver "Resueltos" más abajo). Las mejoras pendientes siguen en `MEJORAS.md`, que cita estos números.
 
 > Archivo versionado (desde 2026-10-26) para seguir el trabajo entre dispositivos.
 > Solo **fallos** de la aplicación (incluidos los latentes). Las recomendaciones, la deuda técnica, los tests y las funcionalidades nuevas están en `MEJORAS.md`.
@@ -25,7 +25,7 @@
 | 4   | `fix/frontend-ui`              | HTML base, navegación, paginación, accesibilidad                    | 🟠 P2          | 0 ✅    |
 | 5   | `chore/limpieza-spring-boot-4` | Fallo latente en la validación                                      | 🟢 P4          | 0 ✅    |
 | 6   | `fix/revision-2026-11`         | Perfil, `PUT` de eventos y perfil `test`                            | 🔴 P1          | 0 ✅    |
-| 7   | `errores-auditoria`            | 403 que cierra la sesión, secretos en repo, NPE latente, labels     | 🔴 P1          | 4 ⚠️   |
+| 7   | `errores-auditoria`            | 403 que cierra la sesión, secretos en repo, NPE latente, labels     | 🔴 P1          | 3 ⚠️   |
 
 ### Comandos para verificar cada arreglo (PowerShell)
 
@@ -141,7 +141,7 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
     - **A)** En el compose, `MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}` y `SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}` leídos del mismo `.env` de 1.9; en el healthcheck, `CMD-SHELL` con `mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD`. En `application.properties`, `${DB_PASSWORD:rootpassword}` solo si se quiere seguir arrancando en local sin `.env`.
     - **B)** Además, un usuario de aplicación (`MYSQL_USER`/`MYSQL_PASSWORD`) en lugar de `root`.
 
-- [ ] **2.28 🟡 Los `<Label>` de login y registro no están unidos a su campo (accesibilidad)**
+- [Hecho] **2.28 🟡 Los `<Label>` de login y registro no están unidos a su campo (accesibilidad)** — resuelto con la opción A: el `id` pasa del `Label` al `Input` en los 6 campos.
   - **Problema:** en la PR #12 (4.7) los labels de `frontend/src/pages/LoginPage.tsx:71-90` y `RegisterPage.tsx:85-155` recibieron `htmlFor` **y el mismo `id`** (`<Label htmlFor="email" id="email">`), mientras que los `<Input>` siguen sin `id`. El label queda apuntándose a sí mismo: hacer clic en él no enfoca el campo y el lector de pantalla no anuncia el nombre del campo. `ProfileEditForm` y `AdminEditForm` están bien (el `id` está en el `Input`).
   - **Solución:**
     - **A)** Mover el `id` del `Label` al `Input` en los dos formularios (`email`, `password`, `nombre`, `confirmPassword`).

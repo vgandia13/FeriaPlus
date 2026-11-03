@@ -68,11 +68,12 @@ const LoginPage = () => {
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" id="email" className="text-sm font-medium">
+              <Label htmlFor="email" className="text-sm font-medium">
                 Email
               </Label>
               <Input
                 type="email"
+                id="email"
                 placeholder="nombre@ejemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -81,17 +82,14 @@ const LoginPage = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label
-                htmlFor="password"
-                id="password"
-                className="text-sm font-medium"
-              >
+              <Label htmlFor="password" className="text-sm font-medium">
                 Contraseña
               </Label>
               <div className="relative flex items-center pb-2 py-2 mb-2">
                 <Input
                   type={showPassword ? "text" : "password"}
                   value={password}
+                  id="password"
                   placeholder="Introduce tu contraseña"
                   onChange={(e) => setPassword(e.target.value)}
                   className="pr-10"
