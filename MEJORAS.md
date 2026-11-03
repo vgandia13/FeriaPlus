@@ -2,7 +2,6 @@
 
 > Recomendaciones que **no son fallos**: la aplicación funciona, pero conviene hacerlas (deuda técnica, dependencias, documentación, tests y funcionalidades nuevas).
 > Los fallos están en `ERRORES.md`. La numeración es común a los dos archivos y se conserva porque los puntos se citan entre sí.
-> Resueltas en la PR #8 (`chore/dependencies`): 3.9 (Lombok lo gestiona Spring Boot), 5.14 (jjwt 0.13.0 con la API nueva), 5.15 (Lombok 1.18.48, MapStruct 1.6.3 y `maven-compiler-plugin` de Boot) y 5.17 A (`npm update`).
 > Ruta backend abreviada: `B/` = `backend/src/main/java/com/example/backend/`
 
 ## Cómo leer este archivo
@@ -12,7 +11,7 @@
 
 | Apartado | Rama | Puntos |
 |---|---|---|
-| Tests y CI | `test/unitarios` y siguientes | 5 |
+| Tests y CI | `test/unitarios` y siguientes | 4 |
 | Eventos | rama nueva (`fix/eventos` ya está fusionada) | 1 |
 | Configuración | `fix/config` | 3 |
 | Frontend | `fix/frontend-ui` | 5 |
@@ -31,7 +30,7 @@
   - **Solución:**
     - **A)** Por orden de importancia:
       1. `B/security/JwtUtils.java` (JUnit solo, sin Spring ni Mockito: `new JwtUtils()` + `ReflectionTestUtils.setField(..., "JWT_SECRET", ...)`): el token guarda el id del usuario (2.16); un token bien formado pero caducado da `validateToken == false` (2.15; construirlo con `Jwts.builder()` y `.expiration(new Date(0))`, API de jjwt 0.13); un token firmado con otra clave da `false`.
-      2. `UsuarioService.actualizarPerfil` (Mockito): asignar `ROLE_ADMIN` lanza `NoAutorizadoException` y nunca llama a `save`; editar a un admin lanza `NoAutorizadoException`.
+      2. `UsuarioService.actualizarPerfil` (Mockito): asignar `ROLE_ADMIN` lanza `AccesoDenegadoException` y nunca llama a `save`; editar a un admin lanza `AccesoDenegadoException`.
       3. `UsuarioService.actualizarPerfilPorUsername` (Mockito): con la contraseña actual correcta se guarda la nueva codificada; un email ya registrado lanza `EmailRegistradoException`.
       4. `UsuarioService.eliminarUsuario` (Mockito): sin datos sí llama a `delete`; con reservas, reseñas o asistencias lanza `UsuarioConDatosException`.
     - No merece la pena: `obtenerDatosDashboard` (solo copia datos) ni los handlers de `GlobalExceptionHandler` (ya los cubre la integración).
@@ -44,8 +43,6 @@
 - [ ] **5.7 Tests con Testcontainers + `@ServiceConnection`** (Boot 3.1) y **`RestTestClient`** (Spring 7) — tests contra un MySQL real en contenedor (ver 4.1). Al hacerlo, quitar `h2` y `application-test.properties`.
 
 - [ ] **5.18 Tests end-to-end con Playwright** — flujos completos en un navegador real contra backend + frontend (login correcto/incorrecto, registro, acceso a `/admin` según el rol). Playwright mejor que Cypress: multi-navegador, paralelo sin pagar y `npx playwright codegen` para grabar tests. Hacer después de 4.1 y 4.14.
-
-- [ ] **5.19 Pipeline de CI con GitHub Actions** — `.github/workflows/ci.yml` que en cada push y PR ejecute `mvnw verify` (backend) y `npm run lint`, `npm run build` y los tests (frontend). Los runners de GitHub traen Docker, así que también sirve para Testcontainers (5.7). Con protección de rama en `main` para no fusionar con el CI en rojo. En curso en la rama `chore/ci` (Node 22, como `frontend/Dockerfile`; usar `npm ci`, no `npm install`).
 
 ---
 

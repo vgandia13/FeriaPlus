@@ -111,7 +111,22 @@ Esta es la forma más rápida de ejecutar el proyecto completo sin instalar Java
 cd FeriaPlus
 ```
 
-**2. Construye y levanta los tres contenedores:**
+**2. Crea el fichero `.env` con los secretos** (no se sube a Git):
+
+```powershell
+Copy-Item .env.example .env     # Windows (PowerShell)
+cp .env.example .env            # Linux y macOS
+```
+
+Rellena `JWT_SECRET` con un valor aleatorio de al menos 32 caracteres y `MYSQL_ROOT_PASSWORD` con la contraseña de MySQL. Para generar el secreto en PowerShell:
+
+```powershell
+$b = New-Object byte[] 64; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
+```
+
+MySQL solo aplica `MYSQL_ROOT_PASSWORD` al crear el volumen `mysql_data`: si la cambias después, recrea el volumen con `docker compose down -v` (borra los datos).
+
+**3. Construye y levanta los tres contenedores:**
 
 ```bash
 docker compose up --build
@@ -119,13 +134,13 @@ docker compose up --build
 
 El proceso tarda varios minutos la primera vez porque compila el backend con Maven y el frontend con Node. Las siguientes ejecuciones son mucho más rápidas al usar caché.
 
-**3. Espera a que aparezca este mensaje en los logs:**
+**4. Espera a que aparezca este mensaje en los logs:**
 
 ```
 Base de datos poblada con éxito: 1 Organizador, 1 admin, 1 Expositor, 1 Visitante, 9 Ubicaciones y 9 Eventos de prueba.
 ```
 
-**4. Accede a la aplicación:**
+**5. Accede a la aplicación:**
 
 | Servicio           | URL                                         |
 | ------------------ | ------------------------------------------- |
@@ -167,13 +182,15 @@ docker compose down -v
 
 ### Base de datos
 
+Crea antes el `.env` de la raíz (paso 2 de la instalación con Docker): el backend lo lee al arrancar (`spring.config.import`) para obtener `JWT_SECRET` y `MYSQL_ROOT_PASSWORD`, y Docker Compose lo usa para el contenedor de MySQL.
+
 El backend se conecta por defecto a `localhost:3307`, que es el puerto que publica el contenedor de MySQL. Levanta solo ese servicio:
 
 ```bash
 docker compose up -d mysql
 ```
 
-Si prefieres un MySQL instalado en tu equipo, crea la base de datos `mydatabase` y sobrescribe la conexión con la variable de entorno `SPRING_DATASOURCE_URL` (y `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` si no usas `root` / `rootpassword`).
+Si prefieres un MySQL instalado en tu equipo, crea la base de datos `mydatabase` y sobrescribe la conexión con la variable de entorno `SPRING_DATASOURCE_URL` (y `SPRING_DATASOURCE_USERNAME` si no usas `root`); la contraseña se toma de `MYSQL_ROOT_PASSWORD` en el `.env`.
 
 ### Backend y frontend juntos
 
