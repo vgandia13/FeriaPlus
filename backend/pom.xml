@@ -15,11 +15,18 @@
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
-		<license/>
+		<license>
+			<name>GNU Affero General Public License v3.0</name>
+			<url>https://www.gnu.org/licenses/agpl-3.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
 	</licenses>
 	<developers>
-		<developer/>
-	</developers>
+        <developer>
+            <name>Víctor Gandía Blázquez</name>
+            <url>https://github.com/vgandia13</url>
+        </developer>
+    </developers>
 	<scm>
 		<connection/>
 		<developerConnection/>

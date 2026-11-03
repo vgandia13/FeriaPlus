@@ -1,5 +1,13 @@
 # Feria+ | Proyecto Intermodular - TFG DAW
 
+[![CI Status](https://github.com/vgandia13/FeriaPlus/actions/workflows/ci.yml/badge.svg)](https://github.com/vgandia13/FeriaPlus/actions/workflows/ci.yml)
+[![GitHub License](https://img.shields.io/github/license/vgandia13/FeriaPlus)](./LICENSE)
+![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.2-6DB33F?logo=springboot&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)
+
 **Feria+** es una plataforma integral para la gestión y participación en eventos feriales, desarrollada como Proyecto Fin de Grado para el Ciclo Formativo de Grado Superior en Desarrollo de Aplicaciones Web (DAW). La aplicación permite a organizadores, expositores y visitantes interactuar en un ecosistema digital centralizado para la promoción y asistencia a eventos.
 
 ---
@@ -182,3 +190,9 @@ npm run dev:windows    # Windows
 Por separado: `npm run dev:backend` (o `dev:backend-windows`) y `npm run dev:frontend`. Los scripts sin `-windows` usan `./mvnw`, que no funciona en el `cmd` con el que npm ejecuta los scripts en Windows.
 
 La aplicación estará disponible en http://localhost:5173 y apuntará al backend en http://localhost:8080.
+
+## Licencia
+
+Este proyecto está licenciado bajo los términos de la [GNU Affero General Public License v3.0](LICENSE).
+
+Para acuerdos de licencia comercial privativa o implementaciones a medida sin obligaciones AGPL, contactar directamente con el autor.
