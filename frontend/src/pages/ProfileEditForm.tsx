@@ -34,7 +34,10 @@ const ProfileEditForm = ({
       await userService.updateProfile({
         nombre,
         email,
-        oldPassword: newPassword ? oldPassword : undefined,
+        oldPassword:
+          newPassword || email !== user.email
+            ? oldPassword || undefined
+            : undefined,
         newPassword: newPassword || undefined,
       });
 
@@ -49,7 +52,9 @@ const ProfileEditForm = ({
       onSuccess();
     } catch (error) {
       console.error(error);
-      toast.error("No se pudo actualizar el perfil. Revisa la contraseña actual.");
+      toast.error(
+        "No se pudo actualizar el perfil. Revisa la contraseña actual.",
+      );
     } finally {
       setLoading(false);
     }

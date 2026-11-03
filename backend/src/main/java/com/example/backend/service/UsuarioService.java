@@ -124,6 +124,10 @@ public class UsuarioService {
             if (usuarioRepository.existsByEmail(actualizacionDTO.getEmail())) {
                 throw new EmailRegistradoException("El email ya está registrado");
             }
+            if(actualizacionDTO.getOldPassword() == null 
+                || !passwordEncoder.matches(actualizacionDTO.getOldPassword(), usuario.getPassword()) ) {
+                throw new NoAutorizadoException("La contraseña no es correcta");
+            }
             usuario.setEmail(actualizacionDTO.getEmail());
         }
 

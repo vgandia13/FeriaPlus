@@ -16,8 +16,8 @@
     "url": "git+https://github.com/vgandia13/FeriaPlus.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Víctor Gandía Blázquez",
+  "license": "AGPL-3.0-only",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/vgandia13/FeriaPlus/issues"
