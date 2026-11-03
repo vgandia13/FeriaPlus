@@ -1,6 +1,6 @@
 # Errores a corregir — Feria+
 
-> ⚠️ **5 errores pendientes** de la auditoría de seguimiento del 2026-11-03 (rama 7 `errores-auditoria`: 2.29, 1.9, 1.10, 2.27 y 2.28). El archivo sirve también como **registro** de los fallos encontrados y de cómo se resolvió cada uno (ver "Resueltos" más abajo). Las mejoras pendientes siguen en `MEJORAS.md`, que cita estos números.
+> ⚠️ **4 errores pendientes** de la auditoría de seguimiento del 2026-11-03 (rama 7 `errores-auditoria`: 1.9, 1.10, 2.27 y 2.28; 2.29 ya resuelto). El archivo sirve también como **registro** de los fallos encontrados y de cómo se resolvió cada uno (ver "Resueltos" más abajo). Las mejoras pendientes siguen en `MEJORAS.md`, que cita estos números.
 
 > Archivo versionado (desde 2026-10-26) para seguir el trabajo entre dispositivos.
 > Solo **fallos** de la aplicación (incluidos los latentes). Las recomendaciones, la deuda técnica, los tests y las funcionalidades nuevas están en `MEJORAS.md`.
@@ -25,7 +25,7 @@
 | 4   | `fix/frontend-ui`              | HTML base, navegación, paginación, accesibilidad                    | 🟠 P2          | 0 ✅    |
 | 5   | `chore/limpieza-spring-boot-4` | Fallo latente en la validación                                      | 🟢 P4          | 0 ✅    |
 | 6   | `fix/revision-2026-11`         | Perfil, `PUT` de eventos y perfil `test`                            | 🔴 P1          | 0 ✅    |
-| 7   | `errores-auditoria`            | 403 que cierra la sesión, secretos en repo, NPE latente, labels     | 🔴 P1          | 5 ⚠️   |
+| 7   | `errores-auditoria`            | 403 que cierra la sesión, secretos en repo, NPE latente, labels     | 🔴 P1          | 4 ⚠️   |
 
 ### Comandos para verificar cada arreglo (PowerShell)
 
@@ -122,7 +122,7 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
 
 > Detectados en la auditoría de seguimiento del 2026-11-03, que revisó también los cambios de las PR #11-#15. Pendientes de resolución.
 
-- [ ] **2.29 🟠 Un "no tienes permiso" (`NoAutorizadoException`) cierra la sesión del usuario**
+- [Hecho] **2.29 🟠 Un "no tienes permiso" (`NoAutorizadoException`) cierra la sesión del usuario** — resuelto con la opción A: `AccesoDenegadoException` con 403 y los 6 tests con `isForbidden()`; 30 tests en verde.
   - **Problema:** en la PR #14, `B/exception/GlobalExceptionHandler.java:97` pasó `NoAutorizadoException` de 403 a **401**, pero el interceptor `frontend/src/services/apiService.ts:38-45` entiende cualquier 401 fuera de `/auth` como sesión caducada: borra el token y el usuario, y redirige a `/login`. Así, quien escribe mal la contraseña actual en "Editar perfil" (`ProfileEditForm`) acaba **deslogueado** en vez de ver el toast "Revisa la contraseña actual"; igual le pasaría a un organizador que edita un evento ajeno o a un admin que intenta borrar a otro admin. Además el código es incorrecto: el usuario sí está autenticado (401 es para 2.1, `AuthenticationException`), solo le falta permiso (403, como `AccessDeniedException`). Comprobado: los tests de la PR #14 exigen el 401 (`SeguridadAuthIntegrationTest`: `noPermiteRegistrarComoAdmin`, `noSeBorraAdmin`, `rechazaContrasenaMalaAlActualizar`, `organizadorNoEditaEventoDeOtro`, `organizadorNoEditaEventoSinOrganizador` y `noSeCambiaEmailSinContrasena`) y el interceptor no distingue el motivo. El registro con `ROLE_ADMIN` no se ve afectado porque va por `/auth`.
   - **Solución:**
     - **A)** Volver a `HttpStatus.FORBIDDEN` y **renombrar la excepción a `AccesoDenegadoException`**, para que el nombre no se confunda con el 401 (que en HTTP significa "no autenticado", aunque se llame *Unauthorized*). Afecta a `B/exception/NoAutorizadoException.java` (renombrar el fichero), `GlobalExceptionHandler`, `UsuarioService`, `EventoService` y `EventoServiceTest` (15 apariciones en 5 ficheros). Cambiar esos 6 `status().isUnauthorized()` por `status().isForbidden()`. No confundirla con `org.springframework.security.access.AccessDeniedException`, que ya tiene su propio handler (también 403).
