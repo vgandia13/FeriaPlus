@@ -1,6 +1,6 @@
 # Errores a corregir — Feria+
 
-> ⚠️ **3 errores pendientes** de la auditoría de seguimiento del 2026-11-03 (rama 7 `errores-auditoria`: 1.9, 1.10 y 2.27; 2.29 y 2.28 ya resueltos). El archivo sirve también como **registro** de los fallos encontrados y de cómo se resolvió cada uno (ver "Resueltos" más abajo). Las mejoras pendientes siguen en `MEJORAS.md`, que cita estos números.
+> ⚠️ **2 errores pendientes** de la auditoría de seguimiento del 2026-11-03 (rama 7 `errores-auditoria`: 1.9 y 1.10; 2.29, 2.28 y 2.27 ya resueltos). El archivo sirve también como **registro** de los fallos encontrados y de cómo se resolvió cada uno (ver "Resueltos" más abajo). Las mejoras pendientes siguen en `MEJORAS.md`, que cita estos números.
 
 > Archivo versionado (desde 2026-10-26) para seguir el trabajo entre dispositivos.
 > Solo **fallos** de la aplicación (incluidos los latentes). Las recomendaciones, la deuda técnica, los tests y las funcionalidades nuevas están en `MEJORAS.md`.
@@ -25,7 +25,7 @@
 | 4   | `fix/frontend-ui`              | HTML base, navegación, paginación, accesibilidad                    | 🟠 P2          | 0 ✅    |
 | 5   | `chore/limpieza-spring-boot-4` | Fallo latente en la validación                                      | 🟢 P4          | 0 ✅    |
 | 6   | `fix/revision-2026-11`         | Perfil, `PUT` de eventos y perfil `test`                            | 🔴 P1          | 0 ✅    |
-| 7   | `errores-auditoria`            | 403 que cierra la sesión, secretos en repo, NPE latente, labels     | 🔴 P1          | 3 ⚠️   |
+| 7   | `errores-auditoria`            | 403 que cierra la sesión, secretos en repo, NPE latente, labels     | 🔴 P1          | 2 ⚠️   |
 
 ### Comandos para verificar cada arreglo (PowerShell)
 
@@ -41,7 +41,7 @@ docker compose up --build   # prueba integrada con MySQL
 | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Java 21 (Temurin 21.0.12.1) + `JAVA_HOME`                                 | ✅                                                                                                                                                                                                                                |
 | Spring Boot 4.1.2 + springdoc 3.2.0 (Hibernate 7.4, Spring 7, Security 7) | ✅ en `main`                                                                                                                                                                                                                      |
-| `.\mvnw.cmd verify` (backend)                                             | ✅ 30 tests (27 de integración + 3 unitarios), comprobado el 2026-11-03                                                                                                                                                          |
+| `.\mvnw.cmd verify` (backend)                                             | ✅ 31 tests (27 de integración + 4 unitarios), comprobado el 2026-11-03                                                                                                                                                          |
 | `npm run lint` / `npm run build` (frontend)                               | ✅ 0 errores (aviso de bundle > 500 kB, ver 4.6 en `MEJORAS.md`)                                                                                                                                                                  |
 | `npm audit` raíz                                                          | ✅ 0 vulnerabilidades                                                                                                                                                                                                             |
 | `npm audit` frontend                                                      | ⚠️ 17 (2 bajas + 15 moderadas), solo en herramientas de desarrollo y sin arreglo publicado (ver 5.17 en `MEJORAS.md`). **No usar `npm audit fix --force`**: baja `shadcn` a 1.0 y `typescript-eslint` a 8.14 y rompe build y lint |
@@ -146,7 +146,7 @@ Todos los puntos de esta rama están resueltos (ver "Resueltos" en la cabecera).
   - **Solución:**
     - **A)** Mover el `id` del `Label` al `Input` en los dos formularios (`email`, `password`, `nombre`, `confirmPassword`).
 
-- [ ] **2.27 🟢 (latente) NPE en el dashboard si una reseña no tiene ubicación**
+- [Hecho] **2.27 🟢 (latente) NPE en el dashboard si una reseña no tiene ubicación** — resuelto con la opción A, protegiendo también `r.getEvento()` igual que `EventoService`; test unitario `dashboardConResenaSinUbicacionNoFalla` (falla con NPE sin el arreglo), 31 tests en total.
   - **Problema:** `B/service/UsuarioService.java:82` llama a `r.getUbicacion().getId()` sin comprobar null, cuando `B/service/EventoService.java:135` sí lo comprueba. `Resena.ubicacion` tiene `@JoinColumn(nullable = false)` (`B/model/Resena.java:35`), así que solo pasaría con filas antiguas o insertadas a mano (con `ddl-auto=update` la restricción no se añade a tablas ya creadas): el dashboard daría 500. Mismo tipo de fallo que 2.26.
   - **Solución:**
     - **A)** `r.getUbicacion() != null ? r.getUbicacion().getId() : null`, como en `EventoService`. Test unitario con Mockito (encaja en 4.15 de `MEJORAS.md`).

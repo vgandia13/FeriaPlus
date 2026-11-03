@@ -79,8 +79,8 @@ public class UsuarioService {
         dashboard.setUsuario(mapToResponseDTO(usuario));
 
         dashboard.setResenas(resenaRepository.findByUsuarioId(usuario.getId()).stream()
-                .map(r -> new ResenaDTO(r.getId(), r.getValoracion(), r.getComentario(), r.getUbicacion().getId(),
-                        r.getEvento().getId()))
+                .map(r -> new ResenaDTO(r.getId(), r.getValoracion(), r.getComentario(), r.getUbicacion() != null ? r.getUbicacion().getId() : null,
+                        r.getEvento() != null ? r.getEvento().getId() : null))
                 .collect(Collectors.toList()));
 
         dashboard.setReservas(reservaRepository.findByExpositorId(usuario.getId()).stream()
