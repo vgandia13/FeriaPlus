@@ -93,7 +93,7 @@
     - **A)** Guardarlo solo en un sitio, en `AppContext`/`login()` o en el servicio, y quitar el otro.
 
 - [ ] **4.2 🟢 `console.log` sueltos**
-  - **Problema:** `EventPage.tsx:61`, `LoginPage.tsx:36` y `RegisterPage.tsx:57`.
+  - **Problema:** `LoginPage.tsx:43` y `RegisterPage.tsx:57` (el de `EventPage` se quitó en la PR #12). Incluye la antigua 4.17 de `ERRORES.md`.
   - **Solución:**
     - **A)** Borrarlos.
     - **B)** Regla `no-console: warn` en `eslint.config.js` para que no vuelvan.
@@ -177,6 +177,7 @@
   - **Problema:** `frontend/src/App.tsx:31` (TODO). No hay ninguna pantalla para que un organizador cree o edite eventos.
   - **Solución:**
     - **A)** Ruta `/organizador` protegida con `allowedRoles={["ROLE_ORGANIZADOR"]}`, que liste sus eventos y permita crear/editar (requiere el `PUT` de 1.6 y la asignación del organizador de 1.4).
+    - **Antes hace falta** un `GET /api/ubicaciones` público (nuevo `UbicacionController` + `permitAll` en `SecurityConfig` + 1 test): `POST /api/eventos` exige un `ubicacion.id` y hoy no hay forma de listar las ubicaciones desde el frontend (antigua 4.16 de `ERRORES.md`).
 
 ---
 
