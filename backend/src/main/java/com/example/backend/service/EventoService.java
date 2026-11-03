@@ -75,12 +75,18 @@ public class EventoService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                                             .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
         boolean esAdmin = usuario.getRol() == Rol.ROLE_ADMIN;
-        if (!esAdmin && !evento.getOrganizador().getEmail().equals(email)) {
+        if (!esAdmin && (evento.getOrganizador() == null
+                || !evento.getOrganizador().getEmail().equals(email))) {
             throw new NoAutorizadoException("No puedes editar este evento");
         }
         evento.setNombre(dto.getNombre());
         evento.setDescripcion(dto.getDescripcion());
-        
+        evento.setFecha(LocalDate.parse(dto.getFecha(), java.time.format.DateTimeFormatter.ISO_LOCAL_DATE));
+        if(dto.getUbicacion() == null || dto.getUbicacion().getId() == null){
+            throw new UbicacionNoEncontradaException("Falta la ubicacion");
+        }
+        evento.setUbicacion(ubicacionRepository.findById(dto.getUbicacion().getId())
+            .orElseThrow(() -> new UbicacionNoEncontradaException("Ubicación no encontrada")));
         return mapToDTO(eventoRepository.save(evento));
     }
 

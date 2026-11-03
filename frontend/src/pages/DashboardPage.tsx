@@ -61,7 +61,8 @@ const DashboardPage = () => {
                   <DialogHeader>
                     <DialogTitle>Editar perfil</DialogTitle>
                     <DialogDescription>
-                      Para cambiar la contraseña tienes que indicar la actual.
+                      Para cambiar la contraseña o el correo tienes que indicar
+                      la contraseña actual.
                     </DialogDescription>
                   </DialogHeader>
                   <ProfileEditForm
