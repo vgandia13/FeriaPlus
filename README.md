@@ -1,7 +1,7 @@
 # Feria+ | Proyecto Intermodular - TFG DAW
 
 [![CI Status](https://github.com/vgandia13/FeriaPlus/actions/workflows/ci.yml/badge.svg)](https://github.com/vgandia13/FeriaPlus/actions/workflows/ci.yml)
-[![GitHub License](https://img.shields.io/github/license/vgandia13/FeriaPlus)](./LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3--only-blue.svg)](./LICENSE)
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.2-6DB33F?logo=springboot&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
