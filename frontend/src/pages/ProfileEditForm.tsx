@@ -34,7 +34,10 @@ const ProfileEditForm = ({
       await userService.updateProfile({
         nombre,
         email,
-        oldPassword: newPassword || email ? oldPassword : undefined,
+        oldPassword:
+          newPassword || email !== user.email
+            ? oldPassword || undefined
+            : undefined,
         newPassword: newPassword || undefined,
       });
 

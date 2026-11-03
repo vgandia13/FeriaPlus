@@ -75,7 +75,8 @@ public class EventoService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                                             .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
         boolean esAdmin = usuario.getRol() == Rol.ROLE_ADMIN;
-        if (!esAdmin && !evento.getOrganizador().getEmail().equals(email)) {
+        if (!esAdmin && (evento.getOrganizador() == null
+                || !evento.getOrganizador().getEmail().equals(email))) {
             throw new NoAutorizadoException("No puedes editar este evento");
         }
         evento.setNombre(dto.getNombre());
