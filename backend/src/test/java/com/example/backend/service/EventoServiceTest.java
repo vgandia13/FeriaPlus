@@ -1,7 +1,7 @@
 package com.example.backend.service;
 
 import com.example.backend.DTO.EventoDTO;
-import com.example.backend.exception.NoAutorizadoException;
+import com.example.backend.exception.AccesoDenegadoException;
 import com.example.backend.mapper.UbicacionMapper;
 import com.example.backend.model.Evento;
 import com.example.backend.model.Rol;
@@ -51,7 +51,7 @@ class EventoServiceTest {
         cambios.setNombre("Hackeado");
 
         assertThatThrownBy(() -> eventoService.editar(1L, cambios, "otro@test.com"))
-            .isInstanceOf(NoAutorizadoException.class);
+            .isInstanceOf(AccesoDenegadoException.class);
         verify(eventoRepository, never()).save(any());
     }
 }

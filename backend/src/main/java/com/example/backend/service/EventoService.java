@@ -13,7 +13,7 @@ import com.example.backend.mapper.UbicacionMapper;
 import com.example.backend.DTO.EventoDTO;
 import com.example.backend.DTO.ResenaDTO;
 import com.example.backend.exception.EventoNoEncontradoException;
-import com.example.backend.exception.NoAutorizadoException;
+import com.example.backend.exception.AccesoDenegadoException;
 import com.example.backend.exception.OrdenInvalidoException;
 import com.example.backend.exception.UbicacionNoEncontradaException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
@@ -77,7 +77,7 @@ public class EventoService {
         boolean esAdmin = usuario.getRol() == Rol.ROLE_ADMIN;
         if (!esAdmin && (evento.getOrganizador() == null
                 || !evento.getOrganizador().getEmail().equals(email))) {
-            throw new NoAutorizadoException("No puedes editar este evento");
+            throw new AccesoDenegadoException("No puedes editar este evento");
         }
         evento.setNombre(dto.getNombre());
         evento.setDescripcion(dto.getDescripcion());

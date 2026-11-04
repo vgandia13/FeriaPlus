@@ -82,47 +82,42 @@ const RegisterPage = () => {
         <form onSubmit={handleRegister}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label
-                htmlFor="nombre"
-                id="nombre"
-                className="text-sm font-medium"
-              >
+              <Label htmlFor="nombre" className="text-sm font-medium">
                 Nombre de Usuario
               </Label>
               <Input
                 type="text"
                 placeholder="Tu nombre de usuario"
                 value={username}
+                id="nombre"
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 autoComplete="username"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" id="email" className="text-sm font-medium">
+              <Label htmlFor="email" className="text-sm font-medium">
                 Email
               </Label>
               <Input
                 type="email"
                 placeholder="Tu email"
                 value={email}
+                id="email"
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
               />
             </div>
             <div className="space-y-2">
-              <Label
-                htmlFor="password"
-                id="password"
-                className="text-sm font-medium"
-              >
+              <Label htmlFor="password" className="text-sm font-medium">
                 Contraseña
               </Label>
               <div className="relative flex items-center pb-2 py-2">
                 <Input
                   type={showPassword ? "text" : "password"}
                   value={password}
+                  id="password"
                   placeholder="Introduce tu contraseña (mínimo 8 caracteres)"
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -146,17 +141,14 @@ const RegisterPage = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <Label
-                htmlFor="confirmPassword"
-                id="confirmPassword"
-                className="text-sm font-medium"
-              >
+              <Label htmlFor="confirmPassword" className="text-sm font-medium">
                 Confirma tu contraseña
               </Label>
               <div className="relative flex items-center pb-2 py-2">
                 <Input
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
+                  id="confirmPassword"
                   placeholder="Introduce tu contraseña"
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pr-10"

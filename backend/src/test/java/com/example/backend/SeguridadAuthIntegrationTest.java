@@ -150,7 +150,7 @@ class SeguridadAuthIntegrationTest {
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\":\"Juanito\",\"email\":\"exploiter@gmail.com\",\"password\":\"malmalmal\",\"rol\":\"ROLE_ADMIN\"}"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -166,7 +166,7 @@ class SeguridadAuthIntegrationTest {
     void noSeBorraAdmin() throws Exception {
         mockMvc.perform(delete("/api/admin/usuarios/" + idDe("admin@gmail.com"))
                         .header("Authorization", "Bearer " + login("admin@gmail.com")))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -175,7 +175,7 @@ class SeguridadAuthIntegrationTest {
                         .header("Authorization", "Bearer " + login("carlos@gmail.com"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\":\"Carlos\",\"email\":\"carlos@gmail.com\",\"oldPassword\":\"contrasenaMala\",\"newPassword\":\"contrasenaNueva\"}"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -200,7 +200,7 @@ class SeguridadAuthIntegrationTest {
                         .header("Authorization", "Bearer " + login("otro@gmail.com"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventoJson("Hackeado")))
-                .andExpect(status().isUnauthorized())
+                .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value("No puedes editar este evento"));
     }
 
@@ -252,7 +252,7 @@ class SeguridadAuthIntegrationTest {
                         .header("Authorization", "Bearer " + login("carlos@gmail.com"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\":\"Carlos\",\"email\":\"carlos_nuevo@gmail.com\"}"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test 
@@ -304,7 +304,7 @@ class SeguridadAuthIntegrationTest {
                         .header("Authorization", "Bearer " + login("organizador@gmail.com"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventoJson("Intento")))
-                .andExpect(status().isUnauthorized())
+                .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value("No puedes editar este evento"));
     }
 

@@ -89,12 +89,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(NoAutorizadoException.class)
-    public ResponseEntity<Object> handleNoAutorizadoException(NoAutorizadoException ex){
+    @ExceptionHandler(AccesoDenegadoException.class)
+    public ResponseEntity<Object> handleAccesoDenegadoException(AccesoDenegadoException ex){
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("message", ex.getMessage());
-        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

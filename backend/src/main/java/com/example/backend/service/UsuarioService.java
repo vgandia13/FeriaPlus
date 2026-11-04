@@ -23,7 +23,7 @@ import com.example.backend.repository.PuestoRepository;
 import java.util.stream.Collectors;
 import com.example.backend.DTO.UsuarioResponseDTO;
 import com.example.backend.exception.EmailRegistradoException;
-import com.example.backend.exception.NoAutorizadoException;
+import com.example.backend.exception.AccesoDenegadoException;
 import com.example.backend.exception.UsuarioConDatosException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
 import lombok.RequiredArgsConstructor;
@@ -79,8 +79,8 @@ public class UsuarioService {
         dashboard.setUsuario(mapToResponseDTO(usuario));
 
         dashboard.setResenas(resenaRepository.findByUsuarioId(usuario.getId()).stream()
-                .map(r -> new ResenaDTO(r.getId(), r.getValoracion(), r.getComentario(), r.getUbicacion().getId(),
-                        r.getEvento().getId()))
+                .map(r -> new ResenaDTO(r.getId(), r.getValoracion(), r.getComentario(), r.getUbicacion() != null ? r.getUbicacion().getId() : null,
+                        r.getEvento() != null ? r.getEvento().getId() : null))
                 .collect(Collectors.toList()));
 
         dashboard.setReservas(reservaRepository.findByExpositorId(usuario.getId()).stream()
@@ -126,7 +126,7 @@ public class UsuarioService {
             }
             if(actualizacionDTO.getOldPassword() == null 
                 || !passwordEncoder.matches(actualizacionDTO.getOldPassword(), usuario.getPassword()) ) {
-                throw new NoAutorizadoException("La contraseña no es correcta");
+                throw new AccesoDenegadoException("La contraseña no es correcta");
             }
             usuario.setEmail(actualizacionDTO.getEmail());
         }
@@ -140,7 +140,7 @@ public class UsuarioService {
         if (actualizacionDTO.getNewPassword() != null && !actualizacionDTO.getNewPassword().isBlank()) {
             if (actualizacionDTO.getOldPassword() == null
                 || !passwordEncoder.matches(actualizacionDTO.getOldPassword(), usuario.getPassword())) {
-                throw new NoAutorizadoException("La contraseña actual no es correcta");
+                throw new AccesoDenegadoException("La contraseña actual no es correcta");
             }
             usuario.setPassword(passwordEncoder.encode(actualizacionDTO.getNewPassword()));
         }
@@ -156,10 +156,10 @@ public class UsuarioService {
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
         // Un admin no puede editar a ningún admin, tampoco a sí mismo
         if (usuario.getRol() == Rol.ROLE_ADMIN) {
-            throw new NoAutorizadoException("No puedes modificar a un administrador");
+            throw new AccesoDenegadoException("No puedes modificar a un administrador");
         }
         if (actualizacionDTO.getRol() == Rol.ROLE_ADMIN) {
-            throw new NoAutorizadoException("No puedes asignar el rol de administrador");
+            throw new AccesoDenegadoException("No puedes asignar el rol de administrador");
         }
         if (!usuario.getEmail().equals(actualizacionDTO.getEmail())
                 && usuarioRepository.existsByEmail(actualizacionDTO.getEmail())) {
@@ -177,7 +177,7 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(id)
             .orElseThrow(() -> new UsuarioNoEncontradoException("No existe usuario con ese ID"));
         if (usuario.getRol() == Rol.ROLE_ADMIN) {
-            throw new NoAutorizadoException("No puedes eliminar a un administrador");
+            throw new AccesoDenegadoException("No puedes eliminar a un administrador");
         }
         if(eventoRepository.existsByAsistentes_Id(id) || eventoRepository.existsByOrganizadorId(id) || reservaRepository.existsByExpositorId(id) || resenaRepository.existsByUsuarioId(id)){
             throw new UsuarioConDatosException("No se puede eliminar: el usuario tiene eventos, reservas o reseñas");
@@ -203,7 +203,7 @@ public class UsuarioService {
         if(registroDTO.getRol() != Rol.ROLE_ADMIN){
             usuario.setRol(registroDTO.getRol());
         }else{
-            throw new NoAutorizadoException("No se puede registrar como Admin");
+            throw new AccesoDenegadoException("No se puede registrar como Admin");
         }
         return usuario;
     }
