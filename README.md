@@ -1,7 +1,7 @@
 # Feria+ | Proyecto Intermodular - TFG DAW
 
 [![CI Status](https://github.com/vgandia13/FeriaPlus/actions/workflows/ci.yml/badge.svg)](https://github.com/vgandia13/FeriaPlus/actions/workflows/ci.yml)
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3--only-blue.svg)](./LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL--3.0--only-blue?logo=gnu&logoColor=white)](./LICENSE)
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.2-6DB33F?logo=springboot&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
@@ -213,3 +213,5 @@ La aplicación estará disponible en http://localhost:5173 y apuntará al backen
 Este proyecto está licenciado bajo los términos de la [GNU Affero General Public License v3.0](LICENSE).
 
 Para acuerdos de licencia comercial privativa o implementaciones a medida sin obligaciones AGPL, contactar directamente con el autor.
+
+Copyright (C) 2026 Víctor Gandía Blázquez. Licenciado bajo la [GNU AGPL v3.0 (solo esa versión)](LICENSE).
