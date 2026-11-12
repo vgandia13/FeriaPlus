@@ -7,7 +7,7 @@
 ## Cómo leer este archivo
 
 - Prioridad: 🔴 **P1** seguridad / pérdida de datos · 🟠 **P2** rompe un flujo visible · 🟡 **P3** bug menor de UI/UX · 🟢 **P4** configuración / deuda.
-- Los números (1.x seguridad, 2.x bugs, 3.x config, 4.x calidad, 5.x mejoras) son comunes con `MEJORAS.md`. Último usado: 1.10, 2.29, 3.13, 4.17.
+- Los números (1.x seguridad, 2.x bugs, 3.x config, 4.x calidad, 5.x mejoras) son comunes con `MEJORAS.md`. Último usado: 1.10, 2.29, 3.13, 4.17, 5.25.
 - Cada punto tiene **Problema** y **Solución**. Si hay varias opciones, la **A** es la recomendada.
 
 ### Comandos para verificar cada arreglo (PowerShell)
@@ -24,7 +24,7 @@ docker compose up --build   # prueba integrada con MySQL
 | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Java 21 (Temurin 21.0.12.1) + `JAVA_HOME`                                 | ✅                                                                                                                                                                                                                                |
 | Spring Boot 4.1.2 + springdoc 3.2.0 (Hibernate 7.4, Spring 7, Security 7) | ✅ en `main`                                                                                                                                                                                                                      |
-| `.\mvnw.cmd verify` (backend)                                             | ✅ 39 tests (27 de integración + 12 unitarios), comprobado el 2026-11-12                                                                                                                                                          |
+| `.\mvnw.cmd verify` (backend)                                             | ✅ 40 tests (27 de integración + 13 unitarios), comprobado el 2026-11-12                                                                                                                                                          |
 | `npm run lint` / `npm run build` (frontend)                               | ✅ 0 errores (bundle inicial de 402 kB tras 4.6); `npx vitest run`: 8 tests                                                                                                                                                                  |
 | `npm audit` raíz                                                          | ✅ 0 vulnerabilidades                                                                                                                                                                                                             |
 | `npm audit` frontend                                                      | ⚠️ 12 (2 bajas + 10 moderadas, 2026-11-12), solo en herramientas de desarrollo y sin arreglo publicado (ver 5.17 en `MEJORAS.md`). **No usar `npm audit fix --force`**: baja `shadcn` a 1.0 y `typescript-eslint` a 8.14 y rompe build y lint |

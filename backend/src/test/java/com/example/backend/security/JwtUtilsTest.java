@@ -3,12 +3,9 @@ package com.example.backend.security;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Date;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.jsonwebtoken.Jwts;
@@ -27,9 +24,7 @@ class JwtUtilsTest {
 
     @Test 
     void elTokenGuardaElIdDelUsuario() {
-        var auth = new UsernamePasswordAuthenticationToken("x", null,
-                List.of(new SimpleGrantedAuthority("ROLE_VISITANTE")));
-        String token = jwtUtils.generateToken(auth, 42L);
+        String token = jwtUtils.generateToken(42L);
         assertThat(jwtUtils.getUsuarioIdFromToken(token)).isEqualTo(42L);
     }
 

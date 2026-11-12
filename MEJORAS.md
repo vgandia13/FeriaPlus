@@ -12,7 +12,8 @@
 | Apartado | Rama | Puntos |
 |---|---|---|
 | Tests y CI | rama nueva (`test/unitarios` cerró 4.15 y 4.14) | 2 |
-| Limpieza y dependencias | rama nueva (`chore/limpieza-spring-boot-4` se cerró solo con 4.11) | 9 |
+| Limpieza y dependencias | `refactor/mapstruct` y siguientes (`chore/limpieza-backend` cerró 4.10, 3.6, 5.3, 5.1, 5.2, 5.16 y casi todo 5.17) | 4 |
+| Categorías y "cerca de mí" | `feature/categorias`, `feature/cerca-de-mi` | 2 |
 | Panel de organizador | `feature/panel-organizador` | 1 |
 | JWT en cookie `HttpOnly` (guía) | `feature/auth-cookie` | 1 |
 | Login con Google (guía, requiere 5.20) | `feature/google-login` | 1 |
@@ -30,46 +31,19 @@
 
 ## 5️⃣ Limpieza y dependencias
 
-> La rama `chore/limpieza-spring-boot-4` se cerró solo con el fallo 4.11 de `ERRORES.md`: estas mejoras van en una rama nueva.
+> `chore/limpieza-backend` cerró la limpieza pequeña. Quedan 5.25 (rama `refactor/mapstruct`), 5.17 (esperar a TS 7), 5.8 y 5.5.
 
-- [ ] **4.10 🟢 Código muerto en el backend**
-  - **Problema:** `B/service/CategoriaService.java` y `B/exception/CategoriaNoEncontradaException.java` no tienen controlador ni handler; `EventoService.listarPorCategoria`, `JwtUtils.getRolesFromToken` y `UsuarioRepository.findByNombre` no se usan.
+- [ ] **5.25 🟢 MapStruct para todos los mapeos** (hacerlo antes de 5.23, para que el código nuevo ya use los mappers)
+  - **Problema:** solo `Ubicacion` usa MapStruct (`B/mapper/UbicacionMapper.java`). El resto se mapea a mano con métodos privados: `EventoService.mapToDTO`/`mapToEntity`, `UsuarioService.mapToResponseDTO` (y el armado de `DashboardDTO`) y `CategoriaService.mapToDTO`/`mapToEntity`. Dos estilos distintos para lo mismo, y cada campo nuevo hay que añadirlo a mano en varios sitios.
   - **Solución:**
-    - **A)** Borrarlos.
-    - **B)** Usarlos: `GET /api/categorias` + filtro por categoría en Eventos (y handler 404 para la excepción).
+    - **A)** Un `@Mapper(componentModel = "spring")` por entidad (`EventoMapper`, `UsuarioMapper`, `CategoriaMapper`, `ResenaMapper`...), inyectado en el servicio. Los campos que salen de relaciones se mapean con `@Mapping(source = "categoria.id", target = "categoriaId")`; los que necesitan buscar en un repositorio (`categoriaId` → `Categoria`, `ubicacion.id` → `Ubicacion`) se ignoran en el mapper (`ignore = true`) y los sigue poniendo el servicio, que es quien lanza el 404. Nunca mapear `password` a un DTO de respuesta. Los tests de integración y de `UsuarioServiceTest`/`EventoServiceTest` deben seguir pasando sin cambios (los de servicio necesitarán el mapper real: `Mappers.getMapper(...)` o `@Spy`). Al terminar, actualizar la línea de MapStruct del README (3.6).
+    - Quitar de paso `UbicacionMapper.INSTANCE`: con `componentModel = "spring"` sobra.
 
-- [ ] **3.6 🟢 El README describe mal MapStruct**
-  - **Problema:** `README.md:19` dice que MapStruct mapea entidades↔DTOs en general; solo se usa para `Ubicacion` (la línea 68 ya lo dice bien).
-  - **Solución:**
-    - **A)** Corregir la línea 19.
-
-- [ ] **5.3 🟢 `spring.jpa.open-in-view=false`**
-  - **Problema:** está activo por defecto (consultas a la BD durante la serialización, N+1 de ~4 consultas por evento). ⚠️ Desactivarlo sin más **rompe la app**: `EventoService.obtenerTodos`/`obtenerPorId` no son transaccionales y `mapToDTO` (`:77-80`, `:94`) toca relaciones LAZY.
-  - **Solución:**
-    - **A)** Primero `@Transactional(readOnly = true)` en esos métodos, luego `open-in-view=false`.
-    - **B)** Además: `@EntityGraph` o `JOIN FETCH` en `EventoRepository` para resolver el N+1.
-
-- [ ] **5.1 🟢 Filtrar `FACTOR_PASSWORD` del JWT** (Security 7)
-  - **Problema:** `B/security/JwtUtils.java:29-31` emite `"roles":"ROLE_ORGANIZADOR,FACTOR_PASSWORD"`. Hoy no tiene efecto (nadie lee el claim).
-  - **Solución:**
-    - **A)** Filtrar las authorities que empiezan por `ROLE_`.
-    - **B)** Quitar el claim `roles` (junto con `getRolesFromToken`, ver 4.10).
-
-- [ ] **5.2 🟢 Quitar `spring.jpa.database-platform`** (Hibernate 7)
-  - **Problema:** `application.properties:11`; Hibernate detecta MySQL solo y avisa `HHH90000025` al arrancar.
-  - **Solución:**
-    - **A)** Borrar la línea.
-
-- [ ] **5.16 🟢 `spring-boot-starter-web` → `spring-boot-starter-webmvc`**
-  - **Problema:** `pom.xml:39`; Boot 4 renombró el starter y el antiguo está obsoleto.
-  - **Solución:**
-    - **A)** Cambiar el `artifactId`.
-
-- [ ] **5.17 🟢 Versiones mayores de npm pendientes**
+- [ ] **5.17 🟢 TypeScript 7 pendiente**
   - **Vulnerabilidades (2026-11-12):** `npm audit` en `frontend/` da 12 (2 bajas + 10 moderadas; eran 17 el 2026-10-31), pero son solo 2 de origen y las demás son paquetes que dependen de ellas: `minimatch` <11.0.1 (DoS con globs; la traen `eslint` 9 y 10 y `typescript-eslint` 8.72) y `deepmerge` ≤4.3.1 (*prototype poisoning*; la trae la CLI de `shadcn` 4.23, y no hay versión corregida). Afectan solo a herramientas de desarrollo; al bundle solo llega `shadcn/tailwind.css`. **No usar `npm audit fix --force`**: baja `shadcn` a 1.0 y `typescript-eslint` a 8.14 y rompe build y lint. Volver a mirarlo cuando las versiones nuevas de esos paquetes usen `minimatch` 11.
-  - **Problema:** las versiones menores ya están al día (`npm update` en la PR #8). Quedan las mayores, que pueden romper cosas: `eslint`/`@eslint/js` 9 → 10, `typescript` 6 → 7, `react-day-picker` 9 → 10, `@types/node` 24 → 26 (en `frontend/`) y `concurrently` 9 → 10 (en la raíz).
+  - **Problema:** (2026-11-12) menores al día; `@types/node` 26, `eslint` 10 y `concurrently` 10 actualizados; `react-day-picker` se quitó junto con `ui/calendar.tsx`, que no se usaba (la 10 rompía ese componente). Solo queda **`typescript` 6 → 7**: `typescript-eslint` 8.72 exige TS < 6.1 y con la 7 el lint falla ("typescript-eslint does not support TS 7.0").
   - **Solución:**
-    - **A)** Cada una en un commit aparte, leyendo sus notas de versión y comprobando con lint + build (y la app a mano en el caso de `react-day-picker`, que usa el calendario).
+    - **A)** Esperar a que `typescript-eslint` soporte TS 7 (issue typescript-eslint#10940) y entonces `npm i -D typescript@7` + lint, tests y build.
 
 - [ ] **5.8 🟢 Null-safety con JSpecify** (Spring 7)
   - **Problema:** nada avisa de NPE como las de 2.3 (`getRol().name()`) y 2.8 (`fecha` null) antes de ejecutar.
@@ -80,6 +54,22 @@
   - **Problema:** `B/exception/GlobalExceptionHandler.java` devuelve `Map<String,Object>` con un formato propio.
   - **Solución:**
     - **A)** Devolver `ProblemDetail` (`{type,title,status,detail}`) y que el frontend lea `detail` (4.4 se resolvió dejando el mensaje de cada página; con `detail` se podrían mostrar mensajes más concretos del backend).
+
+---
+
+## ➕ Funcionalidades nuevas: categorías y "cerca de mí"
+
+> Hacer después de la limpieza (incluida 5.25, MapStruct). Primero 5.23, porque pasa la búsqueda a `Specification` y 5.24 solo añade un filtro más.
+
+- [ ] **5.23 Categorías de eventos** (rama `feature/categorias`)
+  - **Problema:** el modelo (`Categoria`, `Evento.categoria`, `EventoDTO.categoriaId`, `CategoriaRepository`/`CategoriaService`, `CategoriaNoEncontradaException` con handler) existe, pero el seeder no crea categorías, no hay endpoint y el frontend no las muestra. Además `EventoService.mapToEntity` convierte un `categoriaId` inexistente en `null` sin avisar.
+  - **Solución:**
+    - **A)** Categorías en `DataSeeder` y una por evento; `GET /api/categorias` público; filtro `?categoriaId=` en `GET /api/eventos` combinable con `nombre` y la paginación, usando `JpaSpecificationExecutor` + `Specification` (evita un método de repositorio por combinación); 404 con `CategoriaNoEncontradaException` si no existe; quitar lo que siga sin uso (`listarPorCategoria`, `findByCategoriaId`, métodos sin uso de `CategoriaService`); desplegable en `EventsPage`; tests de integración (listado, filtro y 404).
+
+- [ ] **5.24 Búsqueda "cerca de mí"** (rama `feature/cerca-de-mi`, después de 5.23)
+  - **Problema:** `Ubicacion` ya tiene `latitud`/`longitud`, pero no se puede buscar por distancia.
+  - **Solución:**
+    - **A)** Parámetros `lat`, `lng` y `radioKm` en `GET /api/eventos` (validados: rangos de coordenadas y radio máximo) y una `Specification` con la fórmula de Haversine (`SIN`/`COS`/`ACOS`, que existen en MySQL y en H2; `ST_Distance_Sphere` no está en H2). En el frontend, botón "Cerca de mí" con `navigator.geolocation` (solo funciona en `localhost` o HTTPS), selector de radio (10/25/50/100 km) y aviso si se deniega el permiso. La posición no se guarda. Tests: un punto en Madrid con 50 km devuelve solo los eventos de Madrid.
 
 ---
 

@@ -24,7 +24,7 @@ El proyecto se basa en una arquitectura desacoplada entre cliente y servidor med
 - **Spring Data JPA + Hibernate 7**: Gestión de la persistencia de datos.
 - **MySQL 8.0**: Base de datos relacional para producción.
 - **H2 Database**: Base de datos en memoria para entornos de test.
-- **MapStruct 1.6.3**: Mapeo entre entidades y DTOs.
+- **MapStruct 1.6.3**: Mapeo de Ubicacion ↔ UbicacionDTO (el resto de DTOs se mapean a mano en los servicios).
 - **Lombok**: Reducción de código repetitivo.
 - **SpringDoc OpenAPI 3.2.0**: Documentación automática de la API (Swagger UI).
 - **Maven**: Gestor de dependencias y construcción.
@@ -142,12 +142,12 @@ Base de datos poblada con éxito: 1 Organizador, 1 admin, 1 Expositor, 1 Visitan
 
 **5. Accede a la aplicación:**
 
-| Servicio           | URL                                         |
-| ------------------ | ------------------------------------------- |
-| Frontend (React)   | http://localhost:8081                       |
-| Backend (API REST) | http://localhost:8080                       |
+| Servicio           | URL                                                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------------- |
+| Frontend (React)   | http://localhost:8081                                                                                      |
+| Backend (API REST) | http://localhost:8080                                                                                      |
 | Swagger UI         | desactivado en Docker; solo en local (`mvnw spring-boot:run`): http://localhost:8080/swagger-ui/index.html |
-| Health check       | http://localhost:8080/actuator/health       |
+| Health check       | http://localhost:8080/actuator/health                                                                      |
 
 ### Usuarios de prueba
 
