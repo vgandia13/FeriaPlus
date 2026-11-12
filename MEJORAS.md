@@ -11,7 +11,7 @@
 
 | Apartado | Rama | Puntos |
 |---|---|---|
-| Tests y CI | `test/unitarios` y siguientes | 4 |
+| Tests y CI | rama nueva (`test/unitarios` cerró 4.15 y 4.14) | 2 |
 | Eventos | rama nueva (`fix/eventos` ya está fusionada) | 1 |
 | Configuración | `fix/config` | 3 |
 | Frontend | `fix/frontend-ui` | 5 |
@@ -24,21 +24,6 @@
 ---
 
 ## 🧪 Tests y CI (en este orden)
-
-- [ ] **4.15 🟢 Tests unitarios que no cubre la integración**
-  - **Problema:** los 13 tests de integración de 4.1 solo usan `"Bearer tokenfalso"` (ni siquiera tiene forma de JWT) y solo prueban los caminos de error. Hay reglas de `JwtUtils` y `UsuarioService` que ningún test toca.
-  - **Solución:**
-    - **A)** Por orden de importancia:
-      1. `B/security/JwtUtils.java` (JUnit solo, sin Spring ni Mockito: `new JwtUtils()` + `ReflectionTestUtils.setField(..., "JWT_SECRET", ...)`): el token guarda el id del usuario (2.16); un token bien formado pero caducado da `validateToken == false` (2.15; construirlo con `Jwts.builder()` y `.expiration(new Date(0))`, API de jjwt 0.13); un token firmado con otra clave da `false`.
-      2. `UsuarioService.actualizarPerfil` (Mockito): asignar `ROLE_ADMIN` lanza `AccesoDenegadoException` y nunca llama a `save`; editar a un admin lanza `AccesoDenegadoException`.
-      3. `UsuarioService.actualizarPerfilPorUsername` (Mockito): con la contraseña actual correcta se guarda la nueva codificada; un email ya registrado lanza `EmailRegistradoException`.
-      4. `UsuarioService.eliminarUsuario` (Mockito): sin datos sí llama a `delete`; con reservas, reseñas o asistencias lanza `UsuarioConDatosException`.
-    - No merece la pena: `obtenerDatosDashboard` (solo copia datos) ni los handlers de `GlobalExceptionHandler` (ya los cubre la integración).
-
-- [ ] **4.14 🟢 El frontend no tiene tests**
-  - **Problema:** no hay framework de tests en `frontend/`. Los arreglos 2.10, 2.11 y 2.22 (Navbar tras el registro, interceptor de 401, `ProtectedRoute` sin `usuario`) solo se han probado a mano.
-  - **Solución:**
-    - **A)** Vitest + React Testing Library (`npm i -D vitest @testing-library/react @testing-library/jest-dom jsdom`) y un script `"test": "vitest"`. Vitest y no Jest porque reutiliza la configuración de Vite (alias `@`, TypeScript) sin Babel. Primeros tests: `ProtectedRoute` (sin token → `/login`; token sin `usuario` en ruta con rol → `/`), `Navbar` (`usuario` sin token → no muestra "Mi panel") y el interceptor de `apiService.ts` (401 en `/auth/login` no redirige).
 
 - [ ] **5.7 Tests con Testcontainers + `@ServiceConnection`** (Boot 3.1) y **`RestTestClient`** (Spring 7) — tests contra un MySQL real en contenedor (ver 4.1). Al hacerlo, quitar `h2` y `application-test.properties`.
 
@@ -151,7 +136,7 @@
     - **A)** Cambiar el `artifactId`.
 
 - [ ] **5.17 🟢 Versiones mayores de npm pendientes**
-  - **Vulnerabilidades (2026-10-31):** `npm audit` en `frontend/` da 17 (2 bajas + 15 moderadas), pero son solo 2 de origen y las demás son paquetes que dependen de ellas: `minimatch` <11.0.1 (DoS con globs; la traen `eslint` 9 y 10 y `typescript-eslint` 8.72) y `deepmerge` ≤4.3.1 (*prototype poisoning*; la trae la CLI de `shadcn` 4.23, y no hay versión corregida). Afectan solo a herramientas de desarrollo; al bundle solo llega `shadcn/tailwind.css`. **No usar `npm audit fix --force`**: baja `shadcn` a 1.0 y `typescript-eslint` a 8.14 y rompe build y lint. Volver a mirarlo cuando las versiones nuevas de esos paquetes usen `minimatch` 11.
+  - **Vulnerabilidades (2026-11-12):** `npm audit` en `frontend/` da 12 (2 bajas + 10 moderadas; eran 17 el 2026-10-31), pero son solo 2 de origen y las demás son paquetes que dependen de ellas: `minimatch` <11.0.1 (DoS con globs; la traen `eslint` 9 y 10 y `typescript-eslint` 8.72) y `deepmerge` ≤4.3.1 (*prototype poisoning*; la trae la CLI de `shadcn` 4.23, y no hay versión corregida). Afectan solo a herramientas de desarrollo; al bundle solo llega `shadcn/tailwind.css`. **No usar `npm audit fix --force`**: baja `shadcn` a 1.0 y `typescript-eslint` a 8.14 y rompe build y lint. Volver a mirarlo cuando las versiones nuevas de esos paquetes usen `minimatch` 11.
   - **Problema:** las versiones menores ya están al día (`npm update` en la PR #8). Quedan las mayores, que pueden romper cosas: `eslint`/`@eslint/js` 9 → 10, `typescript` 6 → 7, `react-day-picker` 9 → 10, `@types/node` 24 → 26 (en `frontend/`) y `concurrently` 9 → 10 (en la raíz).
   - **Solución:**
     - **A)** Cada una en un commit aparte, leyendo sus notas de versión y comprobando con lint + build (y la app a mano en el caso de `react-day-picker`, que usa el calendario).
@@ -468,7 +453,7 @@ El token de Google se usa **una vez** para saber quién es el usuario. No se gua
   - **A)** (proyecto académico) Vincular por email solo si `email_verified` es `true`, y dejar el riesgo documentado.
   - **B)** (robusta) Columna `googleSub` (única, nullable) en `Usuario`. Se busca primero por `sub`, que Google no cambia nunca, al contrario que el email. Si no hay coincidencia y existe una cuenta con ese email sin `googleSub`, se responde 409 ("ya existe una cuenta con ese email, inicia sesión con contraseña") y la vinculación se ofrece desde el perfil con la sesión iniciada. Con `ddl-auto=update` (3.3), Hibernate añade la columna solo.
   - Carrera: dos primeros logins simultáneos chocan con `unique` en `email`. `DataIntegrityViolationException` ya da 409 (`GlobalExceptionHandler.java:125`); es aceptable.
-- **Comprobar:** tests de Mockito como los de 4.15: si el email existe, no se llama a `save`; si no existe, se guarda con `ROLE_VISITANTE` y una contraseña no vacía.
+- **Comprobar:** tests de Mockito como los de `UsuarioServiceTest`: si el email existe, no se llama a `save`; si no existe, se guarda con `ROLE_VISITANTE` y una contraseña no vacía.
 
 **7. `POST /api/auth/google`** — `B/controller/AuthController.java`
 - **Qué:**
