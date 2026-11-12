@@ -6,47 +6,34 @@ import com.example.backend.DTO.CategoriaDTO;
 import com.example.backend.model.Categoria;
 import java.util.List;
 import com.example.backend.exception.CategoriaNoEncontradaException;
+import com.example.backend.mapper.CategoriaMapper;
 
 @Service
 public class CategoriaService {
 
     private final CategoriaRepository categoriaRepository;
+    private final CategoriaMapper categoriaMapper;
 
-    public CategoriaService(CategoriaRepository categoriaRepository) {
+    public CategoriaService(CategoriaRepository categoriaRepository, CategoriaMapper categoriaMapper) {
         this.categoriaRepository = categoriaRepository;
+        this.categoriaMapper = categoriaMapper;
     }
 
     public List<CategoriaDTO> listarTodas(){
         return categoriaRepository.findAll().stream()
-                .map(this::mapToDTO)
+                .map(categoriaMapper::toDTO)
                 .toList();
     }
 
     public CategoriaDTO obtenerPorId(Long id) {
         return categoriaRepository.findById(id)
-                .map(this::mapToDTO)
+                .map(categoriaMapper::toDTO)
                 .orElseThrow(() -> new CategoriaNoEncontradaException("Categoría no encontrada"));
     }
 
     public CategoriaDTO guardar(CategoriaDTO categoriaDTO) {
-        Categoria categoria = mapToEntity(categoriaDTO);
+        Categoria categoria = categoriaMapper.toEntity(categoriaDTO);
         Categoria nuevaCategoria = categoriaRepository.save(categoria);
-        return mapToDTO(nuevaCategoria);
-    }
-
-    private CategoriaDTO mapToDTO(Categoria categoria) {
-        CategoriaDTO dto = new CategoriaDTO();
-        dto.setId(categoria.getId());
-        dto.setNombre(categoria.getNombre());
-        dto.setDescripcion(categoria.getDescripcion());
-        return dto;
-    }
-
-    private Categoria mapToEntity(CategoriaDTO dto) {
-        Categoria categoria = new Categoria();
-        categoria.setId(dto.getId());
-        categoria.setNombre(dto.getNombre());
-        categoria.setDescripcion(dto.getDescripcion());
-        return categoria;
+        return categoriaMapper.toDTO(nuevaCategoria);
     }
 }
