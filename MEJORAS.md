@@ -11,7 +11,7 @@
 
 | Apartado | Rama | Puntos |
 |---|---|---|
-| Tests y CI | `test/unitarios` y siguientes | 3 |
+| Tests y CI | rama nueva (`test/unitarios` cerró 4.15 y 4.14) | 2 |
 | Eventos | rama nueva (`fix/eventos` ya está fusionada) | 1 |
 | Configuración | `fix/config` | 3 |
 | Frontend | `fix/frontend-ui` | 5 |
@@ -24,11 +24,6 @@
 ---
 
 ## 🧪 Tests y CI (en este orden)
-
-- [ ] **4.14 🟢 El frontend no tiene tests**
-  - **Problema:** no hay framework de tests en `frontend/`. Los arreglos 2.10, 2.11 y 2.22 (Navbar tras el registro, interceptor de 401, `ProtectedRoute` sin `usuario`) solo se han probado a mano.
-  - **Solución:**
-    - **A)** Vitest + React Testing Library (`npm i -D vitest @testing-library/react @testing-library/jest-dom jsdom`) y un script `"test": "vitest"`. Vitest y no Jest porque reutiliza la configuración de Vite (alias `@`, TypeScript) sin Babel. Primeros tests: `ProtectedRoute` (sin token → `/login`; token sin `usuario` en ruta con rol → `/`), `Navbar` (`usuario` sin token → no muestra "Mi panel") y el interceptor de `apiService.ts` (401 en `/auth/login` no redirige).
 
 - [ ] **5.7 Tests con Testcontainers + `@ServiceConnection`** (Boot 3.1) y **`RestTestClient`** (Spring 7) — tests contra un MySQL real en contenedor (ver 4.1). Al hacerlo, quitar `h2` y `application-test.properties`.
 
