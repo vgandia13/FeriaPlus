@@ -4,6 +4,7 @@ import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.model.Evento;
 import com.example.backend.model.Ubicacion;
+import com.example.backend.repository.CategoriaRepository;
 import com.example.backend.repository.EventoRepository;
 import com.example.backend.repository.UsuarioRepository;
 import com.example.backend.repository.UbicacionRepository;
@@ -40,6 +41,15 @@ class SeguridadAuthIntegrationTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired 
+    private CategoriaRepository categoriaRepository;
+
+    private Long idCategoria(String nombre) {
+        return categoriaRepository.findAll().stream()
+                .filter(c -> c.getNombre().equals(nombre))
+                .findFirst().orElseThrow().getId();
+    }
 
     private String login(String email) throws Exception {
         String json = mockMvc.perform(post("/api/auth/login")
@@ -331,5 +341,51 @@ class SeguridadAuthIntegrationTest {
         mockMvc.perform(get("/api/eventos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].categoriaId").isNumber());
+    }
+
+    @Test
+    void filtrarPorCategoriaDevuelveSoloSusEventos() throws Exception {
+        mockMvc.perform(get("/api/eventos").param("categoriaId", idCategoria("Artesanía").toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements").value(2));
+    }
+
+    @Test
+    void nombreYCategoriaSeCombinan() throws Exception {
+        mockMvc.perform(get("/api/eventos")
+                        .param("nombre", "tejedores")
+                        .param("categoriaId", idCategoria("Artesanía").toString()))
+                .andExpect(jsonPath("$.page.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].nombre").value("Encuentro de Tejedores"));
+    }
+
+    @Test
+    void elPorcentajeNoEsUnComodin() throws Exception {
+        mockMvc.perform(get("/api/eventos").param("nombre", "%"))
+                .andExpect(jsonPath("$.page.totalElements").value(0));
+    }
+
+    @Test
+    void crearEventoConCategoriaInexistenteDa404() throws Exception {
+        Long ubicacionId = eventoRepository.findAll().get(0).getUbicacion().getId();
+        mockMvc.perform(post("/api/eventos")
+                        .header("Authorization", "Bearer " + login("organizador@gmail.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":\"Con categoria falsa\",\"fecha\":\"2026-12-01\","
+                                + "\"ubicacion\":{\"id\":" + ubicacionId + "},\"categoriaId\":9999}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void editarEventoCambiaLaCategoria() throws Exception {
+        Long ubicacionId = eventoRepository.findAll().get(0).getUbicacion().getId();
+        Long cultura = idCategoria("Cultura");
+        mockMvc.perform(put("/api/eventos/" + idEventoDelSeeder())
+                        .header("Authorization", "Bearer " + login("organizador@gmail.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":\"Editado\",\"fecha\":\"2026-12-01\","
+                                + "\"ubicacion\":{\"id\":" + ubicacionId + "},\"categoriaId\":" + cultura + "}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categoriaId").value(cultura));
     }
 }

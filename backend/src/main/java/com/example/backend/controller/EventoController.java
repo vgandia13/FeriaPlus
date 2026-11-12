@@ -32,8 +32,9 @@ public class EventoController {
     @GetMapping
     public ResponseEntity<Page<EventoDTO>> obtenerTodos(
             @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) Long categoriaId,
             Pageable pageable) {
-        return ResponseEntity.ok(eventoService.obtenerTodos(nombre, pageable));
+        return ResponseEntity.ok(eventoService.obtenerTodos(nombre, categoriaId, pageable));
     }
 
     @GetMapping("/{id}")
