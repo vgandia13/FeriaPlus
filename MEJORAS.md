@@ -13,6 +13,7 @@
 |---|---|---|
 | Tests y CI | rama nueva (`test/unitarios` cerró 4.15 y 4.14) | 2 |
 | Limpieza y dependencias | rama nueva (`chore/limpieza-spring-boot-4` se cerró solo con 4.11) | 9 |
+| Categorías y "cerca de mí" | `feature/categorias`, `feature/cerca-de-mi` | 2 |
 | Panel de organizador | `feature/panel-organizador` | 1 |
 | JWT en cookie `HttpOnly` (guía) | `feature/auth-cookie` | 1 |
 | Login con Google (guía, requiere 5.20) | `feature/google-login` | 1 |
@@ -33,10 +34,9 @@
 > La rama `chore/limpieza-spring-boot-4` se cerró solo con el fallo 4.11 de `ERRORES.md`: estas mejoras van en una rama nueva.
 
 - [ ] **4.10 🟢 Código muerto en el backend**
-  - **Problema:** `B/service/CategoriaService.java` y `B/exception/CategoriaNoEncontradaException.java` no tienen controlador ni handler; `EventoService.listarPorCategoria`, `JwtUtils.getRolesFromToken` y `UsuarioRepository.findByNombre` no se usan.
+  - **Problema:** `UsuarioRepository.findByNombre` y `JwtUtils.getRolesFromToken` no se usan. (Lo de categorías no es código muerto sino una funcionalidad a medias: se completa en 5.23.)
   - **Solución:**
     - **A)** Borrarlos.
-    - **B)** Usarlos: `GET /api/categorias` + filtro por categoría en Eventos (y handler 404 para la excepción).
 
 - [ ] **3.6 🟢 El README describe mal MapStruct**
   - **Problema:** `README.md:19` dice que MapStruct mapea entidades↔DTOs en general; solo se usa para `Ubicacion` (la línea 68 ya lo dice bien).
@@ -80,6 +80,22 @@
   - **Problema:** `B/exception/GlobalExceptionHandler.java` devuelve `Map<String,Object>` con un formato propio.
   - **Solución:**
     - **A)** Devolver `ProblemDetail` (`{type,title,status,detail}`) y que el frontend lea `detail` (4.4 se resolvió dejando el mensaje de cada página; con `detail` se podrían mostrar mensajes más concretos del backend).
+
+---
+
+## ➕ Funcionalidades nuevas: categorías y "cerca de mí"
+
+> Hacer después de la limpieza. Primero 5.23, porque pasa la búsqueda a `Specification` y 5.24 solo añade un filtro más.
+
+- [ ] **5.23 Categorías de eventos** (rama `feature/categorias`)
+  - **Problema:** el modelo (`Categoria`, `Evento.categoria`, `EventoDTO.categoriaId`, `CategoriaRepository`/`CategoriaService`, `CategoriaNoEncontradaException` con handler) existe, pero el seeder no crea categorías, no hay endpoint y el frontend no las muestra. Además `EventoService.mapToEntity` convierte un `categoriaId` inexistente en `null` sin avisar.
+  - **Solución:**
+    - **A)** Categorías en `DataSeeder` y una por evento; `GET /api/categorias` público; filtro `?categoriaId=` en `GET /api/eventos` combinable con `nombre` y la paginación, usando `JpaSpecificationExecutor` + `Specification` (evita un método de repositorio por combinación); 404 con `CategoriaNoEncontradaException` si no existe; quitar lo que siga sin uso (`listarPorCategoria`, `findByCategoriaId`, métodos sin uso de `CategoriaService`); desplegable en `EventsPage`; tests de integración (listado, filtro y 404).
+
+- [ ] **5.24 Búsqueda "cerca de mí"** (rama `feature/cerca-de-mi`, después de 5.23)
+  - **Problema:** `Ubicacion` ya tiene `latitud`/`longitud`, pero no se puede buscar por distancia.
+  - **Solución:**
+    - **A)** Parámetros `lat`, `lng` y `radioKm` en `GET /api/eventos` (validados: rangos de coordenadas y radio máximo) y una `Specification` con la fórmula de Haversine (`SIN`/`COS`/`ACOS`, que existen en MySQL y en H2; `ST_Distance_Sphere` no está en H2). En el frontend, botón "Cerca de mí" con `navigator.geolocation` (solo funciona en `localhost` o HTTPS), selector de radio (10/25/50/100 km) y aviso si se deniega el permiso. La posición no se guarda. Tests: un punto en Madrid con 50 km devuelve solo los eventos de Madrid.
 
 ---
 

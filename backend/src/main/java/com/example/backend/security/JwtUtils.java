@@ -4,13 +4,10 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 
 @Component
 public class JwtUtils {
@@ -25,14 +22,10 @@ public class JwtUtils {
 
     // Método para generar la "pulsera de acceso"
     // El subject es el id (no el email) para que cambiar el email no invalide el token
-    public String generateToken(Authentication authentication, Long usuarioId) {
-        String roles = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+    public String generateToken(Long usuarioId) {
 
         return Jwts.builder()
                 .subject(String.valueOf(usuarioId))
-                .claim("roles", roles)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + JWT_EXPIRATION_MS))
                 .signWith(getSigningKey())
@@ -47,15 +40,6 @@ public class JwtUtils {
                 .parseSignedClaims(token)
                 .getPayload()
                 .getSubject());
-    }
-
-    public String getRolesFromToken(String token) {
-        Claims claims = Jwts.parser()
-                            .verifyWith(getSigningKey())
-                            .build()
-                            .parseSignedClaims(token)
-                            .getPayload();
-        return claims.get("roles", String.class);
     }
 
     // Método para verificar si el token es válido o ha sido manipulado
