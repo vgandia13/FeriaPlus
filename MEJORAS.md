@@ -12,7 +12,7 @@
 | Apartado | Rama | Puntos |
 |---|---|---|
 | Tests y CI | rama nueva (`test/unitarios` cerró 4.15 y 4.14) | 2 |
-| Limpieza y dependencias | rama nueva (`chore/limpieza-spring-boot-4` se cerró solo con 4.11) | 9 |
+| Limpieza y dependencias | rama nueva (`chore/limpieza-spring-boot-4` se cerró solo con 4.11) | 10 |
 | Categorías y "cerca de mí" | `feature/categorias`, `feature/cerca-de-mi` | 2 |
 | Panel de organizador | `feature/panel-organizador` | 1 |
 | JWT en cookie `HttpOnly` (guía) | `feature/auth-cookie` | 1 |
@@ -37,6 +37,12 @@
   - **Problema:** `UsuarioRepository.findByNombre` y `JwtUtils.getRolesFromToken` no se usan. (Lo de categorías no es código muerto sino una funcionalidad a medias: se completa en 5.23.)
   - **Solución:**
     - **A)** Borrarlos.
+
+- [ ] **5.25 🟢 MapStruct para todos los mapeos** (hacerlo antes de 5.23, para que el código nuevo ya use los mappers)
+  - **Problema:** solo `Ubicacion` usa MapStruct (`B/mapper/UbicacionMapper.java`). El resto se mapea a mano con métodos privados: `EventoService.mapToDTO`/`mapToEntity`, `UsuarioService.mapToResponseDTO` (y el armado de `DashboardDTO`) y `CategoriaService.mapToDTO`/`mapToEntity`. Dos estilos distintos para lo mismo, y cada campo nuevo hay que añadirlo a mano en varios sitios.
+  - **Solución:**
+    - **A)** Un `@Mapper(componentModel = "spring")` por entidad (`EventoMapper`, `UsuarioMapper`, `CategoriaMapper`, `ResenaMapper`...), inyectado en el servicio. Los campos que salen de relaciones se mapean con `@Mapping(source = "categoria.id", target = "categoriaId")`; los que necesitan buscar en un repositorio (`categoriaId` → `Categoria`, `ubicacion.id` → `Ubicacion`) se ignoran en el mapper (`ignore = true`) y los sigue poniendo el servicio, que es quien lanza el 404. Nunca mapear `password` a un DTO de respuesta. Los tests de integración y de `UsuarioServiceTest`/`EventoServiceTest` deben seguir pasando sin cambios (los de servicio necesitarán el mapper real: `Mappers.getMapper(...)` o `@Spy`). Al terminar, actualizar la línea de MapStruct del README (3.6).
+    - Quitar de paso `UbicacionMapper.INSTANCE`: con `componentModel = "spring"` sobra.
 
 - [ ] **3.6 🟢 El README describe mal MapStruct**
   - **Problema:** `README.md:19` dice que MapStruct mapea entidades↔DTOs en general; solo se usa para `Ubicacion` (la línea 68 ya lo dice bien).
@@ -85,7 +91,7 @@
 
 ## ➕ Funcionalidades nuevas: categorías y "cerca de mí"
 
-> Hacer después de la limpieza. Primero 5.23, porque pasa la búsqueda a `Specification` y 5.24 solo añade un filtro más.
+> Hacer después de la limpieza (incluida 5.25, MapStruct). Primero 5.23, porque pasa la búsqueda a `Specification` y 5.24 solo añade un filtro más.
 
 - [ ] **5.23 Categorías de eventos** (rama `feature/categorias`)
   - **Problema:** el modelo (`Categoria`, `Evento.categoria`, `EventoDTO.categoriaId`, `CategoriaRepository`/`CategoriaService`, `CategoriaNoEncontradaException` con handler) existe, pero el seeder no crea categorías, no hay endpoint y el frontend no las muestra. Además `EventoService.mapToEntity` convierte un `categoriaId` inexistente en `null` sin avisar.

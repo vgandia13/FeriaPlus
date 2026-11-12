@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,9 +29,14 @@ public class AuthController {
 
     private final JwtUtils jwtUtils;
     private final UsuarioService usuarioService;
+    private final AuthenticationManager authenticationManager;
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
+        // Comprueba email y contraseña; si fallan lanza BadCredentialsException
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        
         UsuarioResponseDTO usuario = usuarioService.obtenerUsuarioPorEmail(loginRequest.getEmail());
 
         String token = jwtUtils.generateToken(usuario.getId());
@@ -51,5 +58,4 @@ public class AuthController {
         UsuarioResponseDTO nuevoUsuario = usuarioService.registrarUsuario(registroDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
     }
-
 }
