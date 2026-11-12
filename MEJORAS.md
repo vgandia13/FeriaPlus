@@ -71,11 +71,11 @@
   - **Solución:**
     - **A)** Cambiar el `artifactId`.
 
-- [ ] **5.17 🟢 Versiones mayores de npm pendientes**
+- [ ] **5.17 🟢 TypeScript 7 pendiente**
   - **Vulnerabilidades (2026-11-12):** `npm audit` en `frontend/` da 12 (2 bajas + 10 moderadas; eran 17 el 2026-10-31), pero son solo 2 de origen y las demás son paquetes que dependen de ellas: `minimatch` <11.0.1 (DoS con globs; la traen `eslint` 9 y 10 y `typescript-eslint` 8.72) y `deepmerge` ≤4.3.1 (*prototype poisoning*; la trae la CLI de `shadcn` 4.23, y no hay versión corregida). Afectan solo a herramientas de desarrollo; al bundle solo llega `shadcn/tailwind.css`. **No usar `npm audit fix --force`**: baja `shadcn` a 1.0 y `typescript-eslint` a 8.14 y rompe build y lint. Volver a mirarlo cuando las versiones nuevas de esos paquetes usen `minimatch` 11.
-  - **Problema:** las versiones menores ya están al día (`npm update` en la PR #8). Quedan las mayores, que pueden romper cosas: `eslint`/`@eslint/js` 9 → 10, `typescript` 6 → 7, `react-day-picker` 9 → 10, `@types/node` 24 → 26 (en `frontend/`) y `concurrently` 9 → 10 (en la raíz).
+  - **Problema:** (2026-11-12) menores al día; `@types/node` 26, `eslint` 10 y `concurrently` 10 actualizados; `react-day-picker` se quitó junto con `ui/calendar.tsx`, que no se usaba (la 10 rompía ese componente). Solo queda **`typescript` 6 → 7**: `typescript-eslint` 8.72 exige TS < 6.1 y con la 7 el lint falla ("typescript-eslint does not support TS 7.0").
   - **Solución:**
-    - **A)** Cada una en un commit aparte, leyendo sus notas de versión y comprobando con lint + build (y la app a mano en el caso de `react-day-picker`, que usa el calendario).
+    - **A)** Esperar a que `typescript-eslint` soporte TS 7 (issue typescript-eslint#10940) y entonces `npm i -D typescript@7` + lint, tests y build.
 
 - [ ] **5.8 🟢 Null-safety con JSpecify** (Spring 7)
   - **Problema:** nada avisa de NPE como las de 2.3 (`getRol().name()`) y 2.8 (`fecha` null) antes de ejecutar.

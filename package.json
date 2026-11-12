@@ -24,6 +24,6 @@
   },
   "homepage": "https://github.com/vgandia13/FeriaPlus#readme",
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^10.0.7"
   }
 }
