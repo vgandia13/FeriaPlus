@@ -12,7 +12,6 @@
 | Apartado | Rama | Puntos |
 |---|---|---|
 | Tests y CI | rama nueva (`test/unitarios` cerró 4.15 y 4.14) | 2 |
-| Configuración | `fix/config` | 2 |
 | Frontend | `fix/frontend-ui` | 5 |
 | Limpieza y dependencias | rama nueva (`chore/limpieza-spring-boot-4` se cerró solo con 4.11) | 9 |
 | Panel de organizador | `feature/panel-organizador` | 1 |
@@ -27,24 +26,6 @@
 - [ ] **5.7 Tests con Testcontainers + `@ServiceConnection`** (Boot 3.1) y **`RestTestClient`** (Spring 7) — tests contra un MySQL real en contenedor (ver 4.1). Al hacerlo, quitar `h2` y `application-test.properties`.
 
 - [ ] **5.18 Tests end-to-end con Playwright** — flujos completos en un navegador real contra backend + frontend (login correcto/incorrecto, registro, acceso a `/admin` según el rol). Playwright mejor que Cypress: multi-navegador, paralelo sin pagar y `npx playwright codegen` para grabar tests. Hacer después de 4.1 y 4.14.
-
----
-
-## 3️⃣ Rama `fix/config`
-
-- [ ] **5.4 🟢 Desactivar Swagger en producción** (3.1 se resolvió sin perfiles, así que esto necesita crear uno o usar una variable de entorno)
-  - **Problema:** springdoc 3 avisa al arrancar de que la documentación de la API está expuesta.
-  - **Solución:**
-    - **A)** `springdoc.api-docs.enabled=false` y `springdoc.swagger-ui.enabled=false` en el perfil de producción (o al revés: activarlos solo en `dev`).
-
-- [ ] **5.22 🟢 Avisos de SonarQube Cloud en los Dockerfile** (los 4 de GitHub > Security > Code scanning; va con 3.8 de `ERRORES.md`)
-  - **Problema:**
-    - #1 `docker:S6505` y #2 `docker:S8543` (`frontend/Dockerfile:5`): **ya resueltos** (`npm ci --ignore-scripts`).
-    - #3 y #4 `docker:S6471` (`backend/Dockerfile:9` y `frontend/Dockerfile:11`): `eclipse-temurin` y `nginx` arrancan como `root`; quien consiga ejecutar código en la app tiene root dentro del contenedor.
-  - **Solución:**
-    - **A)** #3: en la etapa final del backend, crea un usuario sin privilegios y cambia a él antes del `ENTRYPOINT` (`RUN groupadd --system app && useradd --system -g app app` + `USER app`). El 8080 es mayor que 1024, así que no hace falta root para abrirlo.
-    - **A)** #4: `FROM nginxinc/nginx-unprivileged:alpine` en lugar de `nginx:alpine`. Ya corre como `nginx`, pero escucha en el **8080** (sin root no se pueden abrir puertos menores de 1024): `listen 8080;` en `nginx.conf`, `EXPOSE 8080` y `"8081:8080"` en `docker-compose.yml`. Encaja con el proxy de 5.20.
-    - Comprobar: `docker compose build` sin errores; `docker compose exec backend whoami` → `app`; `docker compose exec frontend whoami` → `nginx`. Tras el push, SonarQube cierra los avisos en el siguiente análisis.
 
 ---
 
