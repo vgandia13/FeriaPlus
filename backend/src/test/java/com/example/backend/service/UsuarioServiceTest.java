@@ -1,10 +1,14 @@
 package com.example.backend.service;
 
+import com.example.backend.exception.AccesoDenegadoException;
 import com.example.backend.exception.UsuarioConDatosException;
 import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.model.Resena;
 import com.example.backend.DTO.DashboardDTO;
+import com.example.backend.DTO.UsuarioAdminUpdateDTO;
+import com.example.backend.DTO.UsuarioActualizacionDTO;
+import com.example.backend.exception.EmailRegistradoException;
 import com.example.backend.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,5 +68,87 @@ class UsuarioServiceTest {
 
         assertThat(dashboard.getResenas().get(0).getEventoId())
             .isNull();
+    }
+
+    @Test
+    void noSePuedeAsignarRolAdmin() {
+        Usuario usuario = new Usuario();
+        usuario.setRol(Rol.ROLE_VISITANTE);
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
+
+        UsuarioAdminUpdateDTO dto = new UsuarioAdminUpdateDTO();
+        dto.setRol(Rol.ROLE_ADMIN);
+
+        assertThatThrownBy(() -> usuarioService.actualizarPerfil(1L, dto))
+            .isInstanceOf(AccesoDenegadoException.class);
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void noSePuedeEditarAUnAdmin() {
+        Usuario admin = new Usuario();
+        admin.setRol(Rol.ROLE_ADMIN);
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(admin));
+
+        assertThatThrownBy(() -> usuarioService.actualizarPerfil(1L, new UsuarioAdminUpdateDTO()))
+            .isInstanceOf(AccesoDenegadoException.class);
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void cambiarContrasenaConLaActualCorrectaGuardaLaNuevaCodificada() {
+        Usuario usuario = new Usuario();
+        usuario.setEmail("a@test.com");
+        usuario.setPassword("hashVieja");
+        when(usuarioRepository.findByEmail("a@test.com")).thenReturn(Optional.of(usuario));
+        when(passwordEncoder.matches("vieja", "hashVieja")).thenReturn(true);
+        when(passwordEncoder.encode("nueva")).thenReturn("hashNueva");
+        when(usuarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        UsuarioActualizacionDTO dto = new UsuarioActualizacionDTO();
+        dto.setOldPassword("vieja");
+        dto.setNewPassword("nueva");
+
+        usuarioService.actualizarPerfilPorUsername("a@test.com", dto);
+
+        assertThat(usuario.getPassword()).isEqualTo("hashNueva");
+    }
+
+    @Test
+    void cambiarAEmailYaRegistradoLanzaExcepcion() {
+        Usuario usuario = new Usuario();
+        usuario.setEmail("a@test.com");
+        when(usuarioRepository.findByEmail("a@test.com")).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.existsByEmail("b@test.com")).thenReturn(true);
+
+        UsuarioActualizacionDTO dto = new UsuarioActualizacionDTO();
+        dto.setEmail("b@test.com");
+
+        assertThatThrownBy(() -> usuarioService.actualizarPerfilPorUsername("a@test.com", dto))
+            .isInstanceOf(EmailRegistradoException.class);
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void eliminarUsuarioSinDatosLoBorra() {
+        Usuario usuario = new Usuario();
+        usuario.setRol(Rol.ROLE_VISITANTE);
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
+
+        usuarioService.eliminarUsuario(1L);
+
+        verify(usuarioRepository).delete(usuario);
+    }
+
+    @Test
+    void noBorrarUnUsuarioConReservas() {
+        Usuario usuario = new Usuario();
+        usuario.setRol(Rol.ROLE_EXPOSITOR);
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
+        when(reservaRepository.existsByExpositorId(1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> usuarioService.eliminarUsuario(1L))
+            .isInstanceOf(UsuarioConDatosException.class);
+        verify(usuarioRepository, never()).delete(any());
     }
 }
