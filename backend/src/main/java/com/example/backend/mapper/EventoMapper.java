@@ -16,6 +16,15 @@ public interface EventoMapper {
     @Mapping(source = "organizador.id", target = "organizadorId")
     EventoDTO toDTO(Evento evento);
 
+    // Versión corta para el dashboard: sin ubicación ni reseñas (como antes de MapStruct)
+    @Mapping(source = "categoria.id", target = "categoriaId")
+    @Mapping(source = "organizador.id", target = "organizadorId")
+    @Mapping(target = "ubicacion", ignore = true)
+    @Mapping(target = "latitud", ignore = true)
+    @Mapping(target = "longitud", ignore = true)
+    @Mapping(target = "resenas", ignore = true)
+    EventoDTO toResumenDTO(Evento evento);
+
     // Las relaciones las pone el servicio: hay que buscarlas en la BD y lanzar 404 si no existen
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "ubicacion", ignore = true)

@@ -2,32 +2,32 @@ package com.example.backend.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.backend.repository.UsuarioRepository;
-import com.example.backend.model.Rol;
-import com.example.backend.model.Usuario;
-import com.example.backend.DTO.ResenaDTO;
-import com.example.backend.DTO.ReservaDTO;
+import com.example.backend.DTO.DashboardDTO;
 import com.example.backend.DTO.UsuarioActualizacionDTO;
 import com.example.backend.DTO.UsuarioAdminUpdateDTO;
 import com.example.backend.DTO.UsuarioRegistroDTO;
-import com.example.backend.DTO.DashboardDTO;
-import com.example.backend.DTO.EventoDTO;
-import com.example.backend.DTO.PuestoDTO;
-import com.example.backend.repository.ResenaRepository;
-import com.example.backend.repository.ReservaRepository;
-import com.example.backend.repository.EventoRepository;
-import com.example.backend.repository.PuestoRepository;
-import java.util.stream.Collectors;
 import com.example.backend.DTO.UsuarioResponseDTO;
-import com.example.backend.exception.EmailRegistradoException;
 import com.example.backend.exception.AccesoDenegadoException;
+import com.example.backend.exception.EmailRegistradoException;
 import com.example.backend.exception.UsuarioConDatosException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
+import com.example.backend.mapper.EventoMapper;
+import com.example.backend.mapper.PuestoMapper;
+import com.example.backend.mapper.ResenaMapper;
+import com.example.backend.mapper.ReservaMapper;
+import com.example.backend.mapper.UsuarioMapper;
+import com.example.backend.model.Rol;
+import com.example.backend.model.Usuario;
+import com.example.backend.repository.EventoRepository;
+import com.example.backend.repository.PuestoRepository;
+import com.example.backend.repository.ResenaRepository;
+import com.example.backend.repository.ReservaRepository;
+import com.example.backend.repository.UsuarioRepository;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -40,6 +40,11 @@ public class UsuarioService {
     private final ReservaRepository reservaRepository;
     private final EventoRepository eventoRepository;
     private final PuestoRepository puestoRepository;
+    private final UsuarioMapper usuarioMapper;
+    private final ResenaMapper resenaMapper;
+    private final ReservaMapper reservaMapper;
+    private final EventoMapper eventoMapper;
+    private final PuestoMapper puestoMapper;
 
     public UsuarioResponseDTO registrarUsuario(UsuarioRegistroDTO registroDTO) {
         if (usuarioRepository.existsByEmail(registroDTO.getEmail())) {
@@ -48,7 +53,7 @@ public class UsuarioService {
 
         Usuario usuario = mapToEntity(registroDTO);
         Usuario savedUsuario = usuarioRepository.save(usuario);
-        return mapToResponseDTO(savedUsuario);
+        return usuarioMapper.toResponseDTO(savedUsuario);
     }
 
     public Page<UsuarioResponseDTO> listarUsuarios(String nombre, Pageable pageable) {
@@ -58,19 +63,19 @@ public class UsuarioService {
         } else {
             usuarios = usuarioRepository.findByRolNot(Rol.ROLE_ADMIN, pageable);
         }
-        return usuarios.map(this::mapToResponseDTO);
+        return usuarios.map(usuarioMapper::toResponseDTO);
     }
 
     public UsuarioResponseDTO obtenerPerfilPorId(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
-        return mapToResponseDTO(usuario);
+        return usuarioMapper.toResponseDTO(usuario);
     }
 
     public UsuarioResponseDTO obtenerUsuarioPorEmail(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
-        return mapToResponseDTO(usuario);
+        return usuarioMapper.toResponseDTO(usuario);
     }
 
     @Transactional(readOnly = true)
@@ -79,40 +84,17 @@ public class UsuarioService {
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
 
         DashboardDTO dashboard = new DashboardDTO();
-        dashboard.setUsuario(mapToResponseDTO(usuario));
+        dashboard.setUsuario(usuarioMapper.toResponseDTO(usuario));
 
         dashboard.setResenas(resenaRepository.findByUsuarioId(usuario.getId()).stream()
-                .map(r -> new ResenaDTO(r.getId(), r.getValoracion(), r.getComentario(), r.getUbicacion() != null ? r.getUbicacion().getId() : null,
-                        r.getEvento() != null ? r.getEvento().getId() : null))
-                .collect(Collectors.toList()));
-
+            .map(resenaMapper::toDTO).toList());
         dashboard.setReservas(reservaRepository.findByExpositorId(usuario.getId()).stream()
-                .map(r -> new ReservaDTO(r.getId(), r.getFechaReserva(), r.getEstado().name(), r.getExpositor().getId(),
-                        r.getPuesto().getId()))
-                .collect(Collectors.toList()));
-
-        // eventos asistidos
+            .map(reservaMapper::toDTO).toList());
         dashboard.setEventosAsistidos(eventoRepository.findByAsistentes_Id(usuario.getId()).stream()
-                .map(e -> {
-                    EventoDTO dto = new EventoDTO();
-                    dto.setId(e.getId());
-                    dto.setNombre(e.getNombre());
-                    dto.setDescripcion(e.getDescripcion());
-                    dto.setFecha(e.getFecha() != null ? e.getFecha().toString() : null);
-                    dto.setImagenUrl(e.getImagenUrl());
-                    if (e.getCategoria() != null)
-                        dto.setCategoriaId(e.getCategoria().getId());
-                    if (e.getOrganizador() != null)
-                        dto.setOrganizadorId(e.getOrganizador().getId());
-                    return dto;
-                })
-                .collect(Collectors.toList()));
-
-        // puestos
+            .map(eventoMapper::toResumenDTO).toList());
         dashboard.setPuestos(puestoRepository.findPuestosByExpositorId(usuario.getId()).stream()
-                .map(p -> new PuestoDTO(p.getId(), p.getNombre(), p.getDimensiones(), p.getPrecio().doubleValue()))
-                .collect(Collectors.toList()));
-
+            .map(puestoMapper::toDTO).toList());
+            
         return dashboard;
     }
 
@@ -151,7 +133,7 @@ public class UsuarioService {
         // IMPORTANTE: No incluimos usuario.setRol() aquí por seguridad.
 
         Usuario updatedUsuario = usuarioRepository.save(usuario);
-        return mapToResponseDTO(updatedUsuario);
+        return usuarioMapper.toResponseDTO(updatedUsuario);
     }
 
     public UsuarioResponseDTO actualizarPerfil(Long id, UsuarioAdminUpdateDTO actualizacionDTO) {
@@ -173,7 +155,7 @@ public class UsuarioService {
         usuario.setRol(actualizacionDTO.getRol());
 
         Usuario updatedUsuario = usuarioRepository.save(usuario);
-        return mapToResponseDTO(updatedUsuario);
+        return usuarioMapper.toResponseDTO(updatedUsuario);
     }
 
     public void eliminarUsuario(Long id) {
@@ -188,26 +170,13 @@ public class UsuarioService {
         usuarioRepository.delete(usuario);
     }
 
-    private UsuarioResponseDTO mapToResponseDTO(Usuario usuario) {
-        UsuarioResponseDTO responseDTO = new UsuarioResponseDTO();
-        responseDTO.setId(usuario.getId());
-        responseDTO.setNombre(usuario.getNombre());
-        responseDTO.setEmail(usuario.getEmail());
-        responseDTO.setRol(usuario.getRol());
-        responseDTO.setFechaRegistro(usuario.getFechaRegistro());
-        return responseDTO;
-    }
-
     private Usuario mapToEntity(UsuarioRegistroDTO registroDTO) {
-        Usuario usuario = new Usuario();
-        usuario.setNombre(registroDTO.getNombre());
-        usuario.setEmail(registroDTO.getEmail());
-        usuario.setPassword(passwordEncoder.encode(registroDTO.getPassword()));
-        if(registroDTO.getRol() != Rol.ROLE_ADMIN){
-            usuario.setRol(registroDTO.getRol());
-        }else{
+        if (registroDTO.getRol() == Rol.ROLE_ADMIN) {
             throw new AccesoDenegadoException("No se puede registrar como Admin");
         }
+        Usuario usuario = usuarioMapper.toEntity(registroDTO);
+        usuario.setPassword(passwordEncoder.encode(registroDTO.getPassword()));
         return usuario;
     }
+
 }
