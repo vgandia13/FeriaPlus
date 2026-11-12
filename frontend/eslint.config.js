@@ -22,6 +22,7 @@ export default defineConfig([
     rules: {
       "react-refresh/only-export-components": "off", // Adiós al error "estúpido"
       "@typescript-eslint/no-unused-vars": "warn", // Que no te bloquee por una variable que vas a usar luego
+      "no-console": ["warn", { allow: ["error"] }],
     },
     languageOptions: {
       ecmaVersion: 2020,

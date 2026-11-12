@@ -54,7 +54,6 @@ const RegisterPage = () => {
 
     try {
       await AuthService.register(payload);
-      console.log("Registro exitoso");
       toast("Registro exitoso", {
         description: "Bienvenido a Feria+",
       });
