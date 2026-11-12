@@ -5,6 +5,8 @@ import org.springframework.data.domain.Pageable;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.backend.repository.UsuarioRepository;
 import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
@@ -71,6 +73,7 @@ public class UsuarioService {
         return mapToResponseDTO(usuario);
     }
 
+    @Transactional(readOnly = true)
     public DashboardDTO obtenerDatosDashboard(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));

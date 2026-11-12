@@ -26,7 +26,7 @@ import com.example.backend.repository.UbicacionRepository;
 import com.example.backend.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +39,7 @@ public class EventoService {
     private final UbicacionRepository ubicacionRepository;
     private static final Set<String> CAMPOS_ORDEN = Set.of("nombre", "fecha", "id");
 
+    @Transactional(readOnly = true)
     public Page<EventoDTO> obtenerTodos(String nombre, Pageable pageable) {
         for (Sort.Order orden : pageable.getSort()) {
             if (!CAMPOS_ORDEN.contains(orden.getProperty())) {
@@ -54,12 +55,14 @@ public class EventoService {
         return eventos.map(this::mapToDTO);
     }
 
+    @Transactional(readOnly = true)
     public List<EventoDTO> listarPorCategoria(Long categoriaId) {
         return eventoRepository.findByCategoriaId(categoriaId).stream()
                 .map(this::mapToDTO)
                 .toList();
     }
 
+    @Transactional
     public EventoDTO guardar(EventoDTO eventoDTO, String email) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                                             .orElseThrow(() -> new UsuarioNoEncontradoException("No se ha encontrado el usuario"));
@@ -69,6 +72,7 @@ public class EventoService {
         return mapToDTO(nuevoEvento);
     }
 
+    @Transactional 
     public EventoDTO editar(Long id, EventoDTO dto, String email){
         Evento evento = eventoRepository.findById(id)
                         .orElseThrow(() -> new EventoNoEncontradoException("No se ha encontrado el evento"));
@@ -90,6 +94,7 @@ public class EventoService {
         return mapToDTO(eventoRepository.save(evento));
     }
 
+    @Transactional(readOnly = true)
     public EventoDTO obtenerPorId(Long id) {
         return eventoRepository.findById(id)
                 .map(this::mapToDTO)
