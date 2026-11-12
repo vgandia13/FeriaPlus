@@ -27,7 +27,7 @@ docker compose up --build   # prueba integrada con MySQL
 | `.\mvnw.cmd verify` (backend)                                             | ✅ 39 tests (27 de integración + 12 unitarios), comprobado el 2026-11-12                                                                                                                                                          |
 | `npm run lint` / `npm run build` (frontend)                               | ✅ 0 errores (aviso de bundle > 500 kB, ver 4.6 en `MEJORAS.md`)                                                                                                                                                                  |
 | `npm audit` raíz                                                          | ✅ 0 vulnerabilidades                                                                                                                                                                                                             |
-| `npm audit` frontend                                                      | ⚠️ 17 (2 bajas + 15 moderadas), solo en herramientas de desarrollo y sin arreglo publicado (ver 5.17 en `MEJORAS.md`). **No usar `npm audit fix --force`**: baja `shadcn` a 1.0 y `typescript-eslint` a 8.14 y rompe build y lint |
+| `npm audit` frontend                                                      | ⚠️ 12 (2 bajas + 10 moderadas, 2026-11-12), solo en herramientas de desarrollo y sin arreglo publicado (ver 5.17 en `MEJORAS.md`). **No usar `npm audit fix --force`**: baja `shadcn` a 1.0 y `typescript-eslint` a 8.14 y rompe build y lint |
 
 ---
 
