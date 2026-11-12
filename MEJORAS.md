@@ -11,7 +11,7 @@
 
 | Apartado | Rama | Puntos |
 |---|---|---|
-| Tests y CI | `test/unitarios` y siguientes | 4 |
+| Tests y CI | `test/unitarios` y siguientes | 3 |
 | Eventos | rama nueva (`fix/eventos` ya está fusionada) | 1 |
 | Configuración | `fix/config` | 3 |
 | Frontend | `fix/frontend-ui` | 5 |
@@ -24,16 +24,6 @@
 ---
 
 ## 🧪 Tests y CI (en este orden)
-
-- [ ] **4.15 🟢 Tests unitarios que no cubre la integración**
-  - **Problema:** los 13 tests de integración de 4.1 solo usan `"Bearer tokenfalso"` (ni siquiera tiene forma de JWT) y solo prueban los caminos de error. Hay reglas de `JwtUtils` y `UsuarioService` que ningún test toca.
-  - **Solución:**
-    - **A)** Por orden de importancia:
-      1. `B/security/JwtUtils.java` (JUnit solo, sin Spring ni Mockito: `new JwtUtils()` + `ReflectionTestUtils.setField(..., "JWT_SECRET", ...)`): el token guarda el id del usuario (2.16); un token bien formado pero caducado da `validateToken == false` (2.15; construirlo con `Jwts.builder()` y `.expiration(new Date(0))`, API de jjwt 0.13); un token firmado con otra clave da `false`.
-      2. `UsuarioService.actualizarPerfil` (Mockito): asignar `ROLE_ADMIN` lanza `AccesoDenegadoException` y nunca llama a `save`; editar a un admin lanza `AccesoDenegadoException`.
-      3. `UsuarioService.actualizarPerfilPorUsername` (Mockito): con la contraseña actual correcta se guarda la nueva codificada; un email ya registrado lanza `EmailRegistradoException`.
-      4. `UsuarioService.eliminarUsuario` (Mockito): sin datos sí llama a `delete`; con reservas, reseñas o asistencias lanza `UsuarioConDatosException`.
-    - No merece la pena: `obtenerDatosDashboard` (solo copia datos) ni los handlers de `GlobalExceptionHandler` (ya los cubre la integración).
 
 - [ ] **4.14 🟢 El frontend no tiene tests**
   - **Problema:** no hay framework de tests en `frontend/`. Los arreglos 2.10, 2.11 y 2.22 (Navbar tras el registro, interceptor de 401, `ProtectedRoute` sin `usuario`) solo se han probado a mano.
@@ -468,7 +458,7 @@ El token de Google se usa **una vez** para saber quién es el usuario. No se gua
   - **A)** (proyecto académico) Vincular por email solo si `email_verified` es `true`, y dejar el riesgo documentado.
   - **B)** (robusta) Columna `googleSub` (única, nullable) en `Usuario`. Se busca primero por `sub`, que Google no cambia nunca, al contrario que el email. Si no hay coincidencia y existe una cuenta con ese email sin `googleSub`, se responde 409 ("ya existe una cuenta con ese email, inicia sesión con contraseña") y la vinculación se ofrece desde el perfil con la sesión iniciada. Con `ddl-auto=update` (3.3), Hibernate añade la columna solo.
   - Carrera: dos primeros logins simultáneos chocan con `unique` en `email`. `DataIntegrityViolationException` ya da 409 (`GlobalExceptionHandler.java:125`); es aceptable.
-- **Comprobar:** tests de Mockito como los de 4.15: si el email existe, no se llama a `save`; si no existe, se guarda con `ROLE_VISITANTE` y una contraseña no vacía.
+- **Comprobar:** tests de Mockito como los de `UsuarioServiceTest`: si el email existe, no se llama a `save`; si no existe, se guarda con `ROLE_VISITANTE` y una contraseña no vacía.
 
 **7. `POST /api/auth/google`** — `B/controller/AuthController.java`
 - **Qué:**
