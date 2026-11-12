@@ -5,6 +5,7 @@ export const EventoService = {
   // Público según tu SecurityConfig
   getAll: async (params?: {
     nombre?: string;
+    categoriaId?: number;
     page?: number;
     size?: number;
   }): Promise<{

@@ -1,27 +1,30 @@
 package com.example.backend.service;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.DTO.EventoDTO;
 import com.example.backend.exception.AccesoDenegadoException;
+import com.example.backend.exception.CategoriaNoEncontradaException;
 import com.example.backend.exception.EventoNoEncontradoException;
 import com.example.backend.exception.OrdenInvalidoException;
 import com.example.backend.exception.UbicacionNoEncontradaException;
 import com.example.backend.exception.UsuarioNoEncontradoException;
 import com.example.backend.mapper.EventoMapper;
+import com.example.backend.model.Categoria;
 import com.example.backend.model.Evento;
 import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.repository.CategoriaRepository;
 import com.example.backend.repository.EventoRepository;
+import com.example.backend.repository.EventoSpecs;
 import com.example.backend.repository.UbicacionRepository;
 import com.example.backend.repository.UsuarioRepository;
 
@@ -39,26 +42,17 @@ public class EventoService {
     private static final Set<String> CAMPOS_ORDEN = Set.of("nombre", "fecha", "id");
 
     @Transactional(readOnly = true)
-    public Page<EventoDTO> obtenerTodos(String nombre, Pageable pageable) {
+    public Page<EventoDTO> obtenerTodos(String nombre, Long categoriaId, Pageable pageable) {
         for (Sort.Order orden : pageable.getSort()) {
             if (!CAMPOS_ORDEN.contains(orden.getProperty())) {
                 throw new OrdenInvalidoException("Campo de ordenacion inválido");
             }
         }
-        Page<Evento> eventos;
-        if (nombre != null && !nombre.isBlank()) {
-            eventos = eventoRepository.findByNombreContainingIgnoreCase(nombre, pageable);
-        } else {
-            eventos = eventoRepository.findAll(pageable);
-        }
+        Specification<Evento> filtros = Specification.allOf(
+                EventoSpecs.nombreContiene(nombre),
+                EventoSpecs.deCategoria(categoriaId));
+        Page<Evento> eventos = eventoRepository.findAll(filtros, pageable);
         return eventos.map(eventoMapper::toDTO);
-    }
-
-    @Transactional(readOnly = true)
-    public List<EventoDTO> listarPorCategoria(Long categoriaId) {
-        return eventoRepository.findByCategoriaId(categoriaId).stream()
-                .map(eventoMapper::toDTO)
-                .toList();
     }
 
     @Transactional
@@ -90,6 +84,7 @@ public class EventoService {
         }
         evento.setUbicacion(ubicacionRepository.findById(dto.getUbicacion().getId())
             .orElseThrow(() -> new UbicacionNoEncontradaException("Ubicación no encontrada")));
+        evento.setCategoria(buscarCategoria(dto.getCategoriaId()));
         return eventoMapper.toDTO(eventoRepository.save(evento));
     }
 
@@ -116,9 +111,16 @@ public class EventoService {
         }
         evento.setUbicacion(ubicacionRepository.findById(dto.getUbicacion().getId())
             .orElseThrow(() -> new UbicacionNoEncontradaException("Ubicación no encontrada")));
-        if(dto.getCategoriaId() != null){
-            evento.setCategoria(categoriaRepository.findById(dto.getCategoriaId()).orElse(null));
-        }
+        evento.setCategoria(buscarCategoria(dto.getCategoriaId()));
         return evento;
+    }
+
+    // La categoría es opcional; si llega un id, tiene que existir
+    private Categoria buscarCategoria(Long categoriaId) {
+        if (categoriaId == null) {
+            return null;
+        }
+        return categoriaRepository.findById(categoriaId)
+                .orElseThrow(() -> new CategoriaNoEncontradaException("Categoría no encontrada"));
     }
 }

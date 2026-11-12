@@ -1,9 +1,11 @@
 package com.example.backend.bootstrap;
 
+import com.example.backend.model.Categoria;
 import com.example.backend.model.Evento;
 import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.model.Ubicacion;
+import com.example.backend.repository.CategoriaRepository;
 import com.example.backend.repository.EventoRepository;
 import com.example.backend.repository.UsuarioRepository;
 import com.example.backend.repository.UbicacionRepository;
@@ -21,15 +23,18 @@ public class DataSeeder implements CommandLineRunner {
         private final UsuarioRepository usuarioRepository;
         private final UbicacionRepository ubicacionRepository;
         private final PasswordEncoder passwordEncoder;
+        private final CategoriaRepository categoriaRepository;
 
         public DataSeeder(EventoRepository eventoRepository,
                         UsuarioRepository usuarioRepository,
                         UbicacionRepository ubicacionRepository,
-                        PasswordEncoder passwordEncoder) {
+                        PasswordEncoder passwordEncoder,
+                        CategoriaRepository categoriaRepository) {
                 this.eventoRepository = eventoRepository;
                 this.usuarioRepository = usuarioRepository;
                 this.ubicacionRepository = ubicacionRepository;
                 this.passwordEncoder = passwordEncoder;
+                this.categoriaRepository = categoriaRepository;
         }
 
         @Override
@@ -123,6 +128,14 @@ public class DataSeeder implements CommandLineRunner {
                         u9.setLongitud(-0.3643);
                         ubicacionRepository.save(u9);
 
+                        // Categorías
+                        Categoria artesania = crearCategoria("Artesanía", "Productos hechos a mano y talleres");
+                        Categoria gastronomia = crearCategoria("Gastronomía", "Comida, bebida y productos locales");
+                        Categoria cultura = crearCategoria("Cultura", "Libros, cómics, cine y arte");
+                        Categoria tecnologia = crearCategoria("Tecnología", "Innovación, startups y movilidad");
+                        Categoria mercadillos = crearCategoria("Mercadillos", "Segunda mano y economía circular");
+                        Categoria naturaleza = crearCategoria("Naturaleza", "Plantas, flores y jardinería");
+
                         // 3. Crear eventos ficticios con imágenes reales (de Unsplash) usando setters
                         Evento e1 = new Evento();
                         e1.setNombre("Feria de Artesanía Local");
@@ -133,6 +146,7 @@ public class DataSeeder implements CommandLineRunner {
                                         "https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=800&q=80");
                         e1.setOrganizador(organizador);
                         e1.setUbicacion(u1);
+                        e1.setCategoria(artesania);
 
                         Evento e2 = new Evento();
                         e2.setNombre("Mercado Gastronómico");
@@ -143,6 +157,7 @@ public class DataSeeder implements CommandLineRunner {
                                         "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&w=800&q=80");
                         e2.setOrganizador(organizador);
                         e2.setUbicacion(u2);
+                        e2.setCategoria(gastronomia);
 
                         Evento e3 = new Evento();
                         e3.setNombre("Feria del Libro Antiguo");
@@ -152,6 +167,7 @@ public class DataSeeder implements CommandLineRunner {
                                         "https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=800&q=80");
                         e3.setOrganizador(organizador);
                         e3.setUbicacion(u3);
+                        e3.setCategoria(cultura);
 
                         Evento e4 = new Evento();
                         e4.setNombre("Encuentro de Tejedores");
@@ -161,6 +177,7 @@ public class DataSeeder implements CommandLineRunner {
                                         "https://images.unsplash.com/photo-1605289982774-9a6fef564df8?auto=format&fit=crop&w=800&q=80");
                         e4.setOrganizador(organizador);
                         e4.setUbicacion(u4);
+                        e4.setCategoria(artesania);
 
                         Evento e5 = new Evento();
                         e5.setNombre("Mercadillo de Segunda Mano");
@@ -171,6 +188,7 @@ public class DataSeeder implements CommandLineRunner {
                                         "https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?auto=format&fit=crop&w=800&q=80");
                         e5.setOrganizador(organizador);
                         e5.setUbicacion(u5);
+                        e5.setCategoria(mercadillos);
 
                         // e6 Actualizado: De un mercadillo a una feria tecnológica
                         Evento e6 = new Evento();
@@ -182,6 +200,7 @@ public class DataSeeder implements CommandLineRunner {
                                         "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80");
                         e6.setOrganizador(organizador);
                         e6.setUbicacion(u6);
+                        e6.setCategoria(tecnologia);
 
                         // Evento 7: Festival de Flores
                         Evento e7 = new Evento();
@@ -193,6 +212,7 @@ public class DataSeeder implements CommandLineRunner {
                                         "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=800&q=80");
                         e7.setOrganizador(organizador);
                         e7.setUbicacion(u7);
+                        e7.setCategoria(naturaleza);
 
                         // Evento 8: Convención de Cómics y Cultura Pop
                         Evento e8 = new Evento();
@@ -203,6 +223,7 @@ public class DataSeeder implements CommandLineRunner {
                                         "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=800&q=80");
                         e8.setOrganizador(organizador);
                         e8.setUbicacion(u8);
+                        e8.setCategoria(cultura);
 
                         // Evento 9: Feria de Vehículos Eléctricos
                         Evento e9 = new Evento();
@@ -214,14 +235,22 @@ public class DataSeeder implements CommandLineRunner {
                                         "https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&w=800&q=80");
                         e9.setOrganizador(organizador);
                         e9.setUbicacion(u9);
+                        e9.setCategoria(tecnologia);
 
                         // Guardar todos los eventos de golpe
                         eventoRepository.saveAll(Arrays.asList(e1, e2, e3, e4, e5, e6, e7, e8, e9));
 
                         System.out.println(
-                                        "Base de datos poblada con éxito: 1 Organizador, 1 admin, 1 Expositor, 1 Visitante, 9 Ubicaciones y 9 Eventos de prueba.");
+                                        "Base de datos poblada con éxito: 1 Organizador, 1 admin, 1 Expositor, 1 Visitante, 9 Ubicaciones, 6 categorías y 9 Eventos de prueba.");
                 } else {
                         System.out.println("Base de datos ya estaba poblada.");
                 }
+        }
+        
+        private Categoria crearCategoria(String nombre, String descripcion) {
+                Categoria categoria = new Categoria();
+                categoria.setNombre(nombre);
+                categoria.setDescripcion(descripcion);
+                return categoriaRepository.save(categoria);
         }
 }

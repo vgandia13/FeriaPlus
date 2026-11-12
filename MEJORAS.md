@@ -13,7 +13,7 @@
 |---|---|---|
 | Tests y CI | rama nueva (`test/unitarios` cerró 4.15 y 4.14) | 2 |
 | Limpieza y dependencias | rama nueva (`chore/limpieza-backend` y `refactor/mapstruct` cerraron el resto) | 4 |
-| Categorías y "cerca de mí" | `feature/categorias`, `feature/cerca-de-mi` | 2 |
+| "Cerca de mí" | `feature/cerca-de-mi` (`feature/categorias` cerró 5.23) | 1 |
 | Panel de organizador | `feature/panel-organizador` | 1 |
 | JWT en cookie `HttpOnly` (guía) | `feature/auth-cookie` | 1 |
 | Login con Google (guía, requiere 5.20) | `feature/google-login` | 1 |
@@ -31,12 +31,12 @@
 
 ## 5️⃣ Limpieza y dependencias
 
-> `chore/limpieza-backend` cerró la limpieza pequeña y `refactor/mapstruct` cerró 5.25. Quedan 5.26 (después de 5.23), 5.17 (esperar a TS 7), 5.8 y 5.5.
+> `chore/limpieza-backend` cerró la limpieza pequeña y `refactor/mapstruct` cerró 5.25. Quedan 5.26, 5.17 (esperar a TS 7), 5.8 y 5.5.
 
 - [ ] **5.26 🟢 Consultas N+1 al listar eventos**
   - **Problema:** `GET /api/eventos` hace 1 consulta para la página y luego varias más **por cada evento** al leer sus relaciones en `EventoService.mapToDTO` (`ubicacion`, `resenas`, la `ubicacion` de cada reseña...). Con 9 eventos por página son decenas de consultas. `open-in-view=false` (5.3, ya hecho) evitó los errores, pero no reduce el número de consultas. Se ve activando `spring.jpa.show-sql=true` en local.
   - **Solución:**
-    - **A)** `@EntityGraph(attributePaths = {"ubicacion", "categoria", "organizador"})` en los métodos de `EventoRepository` que devuelven `Page` (las relaciones simples se traen con un `JOIN` en la misma consulta). Para las colecciones (`resenas`) no usar `JOIN FETCH` con paginación (Hibernate pagina en memoria y avisa `HHH90003004`); en su lugar `spring.jpa.properties.hibernate.default_batch_fetch_size=20`, que carga las reseñas de toda la página en una consulta. Hacerlo después de 5.23, porque la búsqueda pasará a `Specification` (`findAll(spec, pageable)` también admite `@EntityGraph`).
+    - **A)** `@EntityGraph(attributePaths = {"ubicacion", "categoria", "organizador"})` en los métodos de `EventoRepository` que devuelven `Page` (las relaciones simples se traen con un `JOIN` en la misma consulta). Para las colecciones (`resenas`) no usar `JOIN FETCH` con paginación (Hibernate pagina en memoria y avisa `HHH90003004`); en su lugar `spring.jpa.properties.hibernate.default_batch_fetch_size=20`, que carga las reseñas de toda la página en una consulta. La búsqueda ya usa `Specification` (5.23): `findAll(spec, pageable)` también admite `@EntityGraph` si se sobrescribe en `EventoRepository`.
     - Comprobar contando consultas antes y después con `show-sql` (o un test con `Statistics` de Hibernate).
 
 - [ ] **5.17 🟢 TypeScript 7 pendiente**
@@ -57,16 +57,11 @@
 
 ---
 
-## ➕ Funcionalidades nuevas: categorías y "cerca de mí"
+## ➕ Funcionalidad nueva: "cerca de mí"
 
-> 5.25 (MapStruct) ya está hecho: el código nuevo debe usar los mappers de `B/mapper/`. Primero 5.23, porque pasa la búsqueda a `Specification` y 5.24 solo añade un filtro más.
+> 5.23 (categorías) ya está hecho: la búsqueda usa `Specification` (`B/repository/EventoSpecs.java`), así que 5.24 solo añade un filtro más ahí. Los mappers de `B/mapper/` (5.25) también están hechos.
 
-- [ ] **5.23 Categorías de eventos** (rama `feature/categorias`)
-  - **Problema:** el modelo (`Categoria`, `Evento.categoria`, `EventoDTO.categoriaId`, `CategoriaRepository`/`CategoriaService`, `CategoriaNoEncontradaException` con handler) existe, pero el seeder no crea categorías, no hay endpoint y el frontend no las muestra. Además `EventoService.mapToEntity` convierte un `categoriaId` inexistente en `null` sin avisar.
-  - **Solución:**
-    - **A)** Categorías en `DataSeeder` y una por evento; `GET /api/categorias` público; filtro `?categoriaId=` en `GET /api/eventos` combinable con `nombre` y la paginación, usando `JpaSpecificationExecutor` + `Specification` (evita un método de repositorio por combinación); 404 con `CategoriaNoEncontradaException` si no existe; quitar lo que siga sin uso (`listarPorCategoria`, `findByCategoriaId`, métodos sin uso de `CategoriaService`); desplegable en `EventsPage`; tests de integración (listado, filtro y 404).
-
-- [ ] **5.24 Búsqueda "cerca de mí"** (rama `feature/cerca-de-mi`, después de 5.23)
+- [ ] **5.24 Búsqueda "cerca de mí"** (rama `feature/cerca-de-mi`)
   - **Problema:** `Ubicacion` ya tiene `latitud`/`longitud`, pero no se puede buscar por distancia.
   - **Solución:**
     - **A)** Parámetros `lat`, `lng` y `radioKm` en `GET /api/eventos` (validados: rangos de coordenadas y radio máximo) y una `Specification` con la fórmula de Haversine (`SIN`/`COS`/`ACOS`, que existen en MySQL y en H2; `ST_Distance_Sphere` no está en H2). En el frontend, botón "Cerca de mí" con `navigator.geolocation` (solo funciona en `localhost` o HTTPS), selector de radio (10/25/50/100 km) y aviso si se deniega el permiso. La posición no se guarda. Tests: un punto en Madrid con 50 km devuelve solo los eventos de Madrid.

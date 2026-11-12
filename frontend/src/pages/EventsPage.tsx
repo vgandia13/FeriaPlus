@@ -19,6 +19,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { Paginacion } from "@/components/Paginacion";
 import { formatDate } from "@/lib/fechas";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CategoriaService } from "../services/categoriaService";
+import { CategoriaDTO } from "../types/CategoriaDTO";
+
+// Valor del desplegable para "sin filtro": Radix Select no admite value=""
+const TODAS = "todas";
 
 const EventsPage = () => {
   const [events, setEvents] = useState<EventoDTO[]>([]);
@@ -27,11 +40,18 @@ const EventsPage = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [categorias, setCategorias] = useState<CategoriaDTO[]>([]);
+  const [categoria, setCategoria] = useState(TODAS);
 
-  const loadEvents = async (nombre: string, p: number) => {
+  const loadEvents = async (nombre: string, cat: string, p: number) => {
     setLoading(true);
     try {
-      const data = await EventoService.getAll({ nombre, page: p, size: 9 });
+      const data = await EventoService.getAll({
+        nombre,
+        categoriaId: cat === TODAS ? undefined : Number(cat),
+        page: p,
+        size: 9,
+      });
       return data;
     } catch (error) {
       console.error("Error al cargar eventos", error);
@@ -55,7 +75,7 @@ const EventsPage = () => {
     let isMounted = true;
 
     const fetchData = async () => {
-      const data = await loadEvents(debouncedSearchTerm, page);
+      const data = await loadEvents(debouncedSearchTerm, categoria, page);
       if (isMounted) {
         setEvents(data.content);
         setTotalPages(data.page.totalPages);
@@ -67,7 +87,17 @@ const EventsPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [debouncedSearchTerm, page]);
+  }, [debouncedSearchTerm, categoria, page]);
+
+  // Las categorías se cargan una vez; si fallan, la página sigue funcionando sin el filtro
+  useEffect(() => {
+    CategoriaService.getAll()
+      .then(setCategorias)
+      .catch((error) => console.error("Error al cargar categorías", error));
+  }, []);
+
+  const nombreCategoria = (id?: number) =>
+    categorias.find((c) => c.id === id)?.nombre;
 
   const handleSearch = () => {
     setDebouncedSearchTerm(searchTerm);
@@ -89,6 +119,25 @@ const EventsPage = () => {
             </Button>
           </InputGroupButton>
         </InputGroup>
+        <Select
+          value={categoria}
+          onValueChange={(valor) => {
+            setCategoria(valor);
+            setPage(0);
+          }}
+        >
+          <SelectTrigger className="mt-3 w-full sm:w-60" aria-label="Filtrar por categoría">
+            <SelectValue placeholder="Categoría" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={TODAS}>Todas las categorías</SelectItem>
+            {categorias.map((c) => (
+              <SelectItem key={c.id} value={String(c.id)}>
+                {c.nombre}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </nav>
       <h1 className="text-3xl font-bold mb-8 text-center">
         Eventos Disponibles
@@ -123,6 +172,11 @@ const EventsPage = () => {
                   />
                 </div>
                 <CardHeader>
+                  {nombreCategoria(event.categoriaId) && (
+                    <Badge variant="secondary" className="w-fit">
+                      {nombreCategoria(event.categoriaId)}
+                    </Badge>
+                  )}
                   <CardTitle className="text-xl">{event.nombre}</CardTitle>
                 </CardHeader>
                 <CardContent>
