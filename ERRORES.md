@@ -7,7 +7,7 @@
 ## Cómo leer este archivo
 
 - Prioridad: 🔴 **P1** seguridad / pérdida de datos · 🟠 **P2** rompe un flujo visible · 🟡 **P3** bug menor de UI/UX · 🟢 **P4** configuración / deuda.
-- Los números (1.x seguridad, 2.x bugs, 3.x config, 4.x calidad, 5.x mejoras) son comunes con `MEJORAS.md`. Último usado: 1.10, 2.29, 3.13, 4.17, 5.25.
+- Los números (1.x seguridad, 2.x bugs, 3.x config, 4.x calidad, 5.x mejoras) son comunes con `MEJORAS.md`. Último usado: 1.10, 2.29, 3.13, 4.17, 5.26.
 - Cada punto tiene **Problema** y **Solución**. Si hay varias opciones, la **A** es la recomendada.
 
 ### Comandos para verificar cada arreglo (PowerShell)

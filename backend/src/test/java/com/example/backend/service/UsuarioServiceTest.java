@@ -2,6 +2,11 @@ package com.example.backend.service;
 
 import com.example.backend.exception.AccesoDenegadoException;
 import com.example.backend.exception.UsuarioConDatosException;
+import com.example.backend.mapper.EventoMapper;
+import com.example.backend.mapper.PuestoMapper;
+import com.example.backend.mapper.ResenaMapper;
+import com.example.backend.mapper.ReservaMapper;
+import com.example.backend.mapper.UsuarioMapper;
 import com.example.backend.model.Rol;
 import com.example.backend.model.Usuario;
 import com.example.backend.model.Resena;
@@ -12,8 +17,10 @@ import com.example.backend.exception.EmailRegistradoException;
 import com.example.backend.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -34,6 +41,13 @@ class UsuarioServiceTest {
     @Mock ReservaRepository reservaRepository;
     @Mock EventoRepository eventoRepository;
     @Mock PuestoRepository puestoRepository;
+
+    // Mappers reales donde el test comprueba lo que devuelven; el resto, mocks
+    @Spy UsuarioMapper usuarioMapper = Mappers.getMapper(UsuarioMapper.class);
+    @Spy ResenaMapper resenaMapper = Mappers.getMapper(ResenaMapper.class);
+    @Mock ReservaMapper reservaMapper;
+    @Mock EventoMapper eventoMapper;
+    @Mock PuestoMapper puestoMapper;
 
     @InjectMocks UsuarioService usuarioService;
 
