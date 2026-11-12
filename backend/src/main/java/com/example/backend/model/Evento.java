@@ -56,7 +56,7 @@ public class Evento {
     private Ubicacion ubicacion;
 
     @OneToMany(mappedBy = "evento", cascade = CascadeType.ALL)
-    private List<Resena> reseñas;
+    private List<Resena> resenas;
 
     @OneToMany(mappedBy = "evento", cascade = CascadeType.ALL)
     private List<Puesto> puestos;

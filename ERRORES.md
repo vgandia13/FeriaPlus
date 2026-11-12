@@ -36,4 +36,5 @@ docker compose up --build   # prueba integrada con MySQL
 - **1.2, 1.3, 1.5 y 3.2**: proyecto académico; el rol de organizador sigue siendo autoasignable.
 - **`PUT /api/eventos/{id}` sin `ubicacion.id` da 404 y no 400**: decisión de 2.5 (404 "si falta o no existe").
 - **`PUT /api/perfil/me` dice si un email existe sin pedir la contraseña**: `POST /api/auth/register` ya lo revela a cualquiera.
+- **3.3 `ddl-auto=update`**: `validate` rompería el primer `docker compose up` con un volumen nuevo (no crea las tablas); la alternativa, Flyway, no compensa en un proyecto académico sin datos reales.
 - **Aviso "'jwt.secret' is an unknown property" en VS Code**: es una propiedad propia leída con `@Value`; funciona aunque el editor no la conozca.
