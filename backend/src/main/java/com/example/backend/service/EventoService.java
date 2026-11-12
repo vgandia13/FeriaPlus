@@ -129,8 +129,8 @@ public class EventoService {
         if(evento.getOrganizador() != null){
             dto.setOrganizadorId(evento.getOrganizador().getId());
         }
-        if (evento.getReseñas() != null) {
-            dto.setResenas(evento.getReseñas().stream()
+        if (evento.getResenas() != null) {
+            dto.setResenas(evento.getResenas().stream()
                     .map(r -> new ResenaDTO(r.getId(), r.getValoracion(), r.getComentario(), 
                                            r.getUbicacion() != null ? r.getUbicacion().getId() : null, 
                                            r.getEvento() != null ? r.getEvento().getId() : null))
