@@ -24,7 +24,7 @@ El proyecto se basa en una arquitectura desacoplada entre cliente y servidor med
 - **Spring Data JPA + Hibernate 7**: Gestión de la persistencia de datos.
 - **MySQL 8.0**: Base de datos relacional para producción.
 - **H2 Database**: Base de datos en memoria para entornos de test.
-- **MapStruct 1.6.3**: Mapeo de Ubicacion ↔ UbicacionDTO (el resto de DTOs se mapean a mano en los servicios).
+- **MapStruct 1.6.3**: Mapeo entre entidades y DTOs (un mapper por entidad; las relaciones que hay que buscar en la BD las resuelve el servicio).
 - **Lombok**: Reducción de código repetitivo.
 - **SpringDoc OpenAPI 3.2.0**: Documentación automática de la API (Swagger UI).
 - **Maven**: Gestor de dependencias y construcción.
@@ -73,7 +73,7 @@ El proyecto se basa en una arquitectura desacoplada entre cliente y servidor med
 │   │   ├── model/                  # Entidades JPA
 │   │   ├── DTO/                    # Objetos de transferencia de datos
 │   │   ├── security/               # JWT, filtros y configuración de Spring Security
-│   │   ├── mapper/                 # MapStruct (Ubicacion ↔ UbicacionDTO)
+│   │   ├── mapper/                 # Mappers de MapStruct (entidad ↔ DTO)
 │   │   ├── bootstrap/              # DataSeeder (datos iniciales)
 │   │   └── exception/              # Excepciones personalizadas y handler global
 │   ├── src/main/resources/
