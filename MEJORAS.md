@@ -12,8 +12,7 @@
 | Apartado | Rama | Puntos |
 |---|---|---|
 | Tests y CI | rama nueva (`test/unitarios` cerró 4.15 y 4.14) | 2 |
-| Eventos | rama nueva (`fix/eventos` ya está fusionada) | 1 |
-| Configuración | `fix/config` | 3 |
+| Configuración | `fix/config` | 2 |
 | Frontend | `fix/frontend-ui` | 5 |
 | Limpieza y dependencias | rama nueva (`chore/limpieza-spring-boot-4` se cerró solo con 4.11) | 9 |
 | Panel de organizador | `feature/panel-organizador` | 1 |
@@ -31,17 +30,6 @@
 
 ---
 
-## 2️⃣ Eventos
-
-> La rama `fix/eventos` se fusionó (PR #9) sin este punto: hacerlo en una rama nueva o junto con la limpieza.
-
-- [ ] **4.5 🟢 Campo `reseñas` con `ñ`**
-  - **Problema:** `B/model/Evento.java:59`. Los identificadores con `ñ` dan problemas en JSON, JPQL y en algunos editores.
-  - **Solución:**
-    - **A)** Renombrar a `resenas` (y su getter/setter y los usos en `EventoService`).
-
----
-
 ## 3️⃣ Rama `fix/config`
 
 - [ ] **5.4 🟢 Desactivar Swagger en producción** (3.1 se resolvió sin perfiles, así que esto necesita crear uno o usar una variable de entorno)
@@ -49,18 +37,11 @@
   - **Solución:**
     - **A)** `springdoc.api-docs.enabled=false` y `springdoc.swagger-ui.enabled=false` en el perfil de producción (o al revés: activarlos solo en `dev`).
 
-- [ ] **3.3 🟢 `ddl-auto=update` en la configuración principal**
-  - **Problema:** `application.properties:13`. Hibernate modifica el esquema en cada arranque y nunca borra columnas o restricciones antiguas (ver 2.7).
-  - **Solución:**
-    - **A)** `update` solo en `dev`; `validate` en producción.
-    - **B)** Migraciones con Flyway (`spring-boot-starter-flyway`) y `validate`. Más robusto, pero añade trabajo.
-
 - [ ] **5.22 🟢 Avisos de SonarQube Cloud en los Dockerfile** (los 4 de GitHub > Security > Code scanning; va con 3.8 de `ERRORES.md`)
   - **Problema:**
-    - #1 `docker:S6505` y #2 `docker:S8543` (`frontend/Dockerfile:5`): `npm install` puede resolver versiones distintas de las de `package-lock.json` y ejecuta los scripts `preinstall`/`postinstall` de cualquier dependencia (vía típica de los ataques a la cadena de suministro).
+    - #1 `docker:S6505` y #2 `docker:S8543` (`frontend/Dockerfile:5`): **ya resueltos** (`npm ci --ignore-scripts`).
     - #3 y #4 `docker:S6471` (`backend/Dockerfile:9` y `frontend/Dockerfile:11`): `eclipse-temurin` y `nginx` arrancan como `root`; quien consiga ejecutar código en la app tiene root dentro del contenedor.
   - **Solución:**
-    - **A)** #1 y #2: `RUN npm ci --ignore-scripts`. `npm ci` instala exactamente lo que dice el lock (y falla si no cuadra con `package.json`). Hoy ninguna dependencia de `frontend/node_modules` declara scripts `install`/`postinstall`, así que no debería romper nada. Si algún día un paquete lo necesita, ejecuta `npm rebuild <paquete>` solo para ese.
     - **A)** #3: en la etapa final del backend, crea un usuario sin privilegios y cambia a él antes del `ENTRYPOINT` (`RUN groupadd --system app && useradd --system -g app app` + `USER app`). El 8080 es mayor que 1024, así que no hace falta root para abrirlo.
     - **A)** #4: `FROM nginxinc/nginx-unprivileged:alpine` en lugar de `nginx:alpine`. Ya corre como `nginx`, pero escucha en el **8080** (sin root no se pueden abrir puertos menores de 1024): `listen 8080;` en `nginx.conf`, `EXPOSE 8080` y `"8081:8080"` en `docker-compose.yml`. Encaja con el proxy de 5.20.
     - Comprobar: `docker compose build` sin errores; `docker compose exec backend whoami` → `app`; `docker compose exec frontend whoami` → `nginx`. Tras el push, SonarQube cierra los avisos en el siguiente análisis.
