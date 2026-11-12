@@ -12,7 +12,6 @@
 | Apartado | Rama | Puntos |
 |---|---|---|
 | Tests y CI | rama nueva (`test/unitarios` cerró 4.15 y 4.14) | 2 |
-| Frontend | `fix/frontend-ui` | 5 |
 | Limpieza y dependencias | rama nueva (`chore/limpieza-spring-boot-4` se cerró solo con 4.11) | 9 |
 | Panel de organizador | `feature/panel-organizador` | 1 |
 | JWT en cookie `HttpOnly` (guía) | `feature/auth-cookie` | 1 |
@@ -26,37 +25,6 @@
 - [ ] **5.7 Tests con Testcontainers + `@ServiceConnection`** (Boot 3.1) y **`RestTestClient`** (Spring 7) — tests contra un MySQL real en contenedor (ver 4.1). Al hacerlo, quitar `h2` y `application-test.properties`.
 
 - [ ] **5.18 Tests end-to-end con Playwright** — flujos completos en un navegador real contra backend + frontend (login correcto/incorrecto, registro, acceso a `/admin` según el rol). Playwright mejor que Cypress: multi-navegador, paralelo sin pagar y `npx playwright codegen` para grabar tests. Hacer después de 4.1 y 4.14.
-
----
-
-## 4️⃣ Rama `fix/frontend-ui`
-
-- [ ] **4.9 🟢 El token se guarda dos veces**
-  - **Problema:** `AuthService.login` (`authService.ts:11`) y `LoginPage.tsx:34`.
-  - **Solución:**
-    - **A)** Guardarlo solo en un sitio, en `AppContext`/`login()` o en el servicio, y quitar el otro.
-
-- [ ] **4.2 🟢 `console.log` sueltos**
-  - **Problema:** `LoginPage.tsx:43` y `RegisterPage.tsx:57` (el de `EventPage` se quitó en la PR #12). Incluye la antigua 4.17 de `ERRORES.md`.
-  - **Solución:**
-    - **A)** Borrarlos.
-    - **B)** Regla `no-console: warn` en `eslint.config.js` para que no vuelvan.
-
-- [ ] **4.6 🟢 Bundle JS de 659 kB**
-  - **Problema:** todo va en un único archivo, incluido Leaflet, que solo se usa en `EventPage`.
-  - **Solución:**
-    - **A)** `React.lazy` + `Suspense` por rutas en `App.tsx` (como mínimo `EventPage` y `AdminPage`).
-
-- [ ] **2.4 🟢 El frontend llama a endpoints inexistentes**
-  - **Problema:** `frontend/src/services/userService.ts:7` (`GET /perfil/me`; solo existe `PUT` → 405) y `eventoService.ts:35` (`DELETE /eventos/{id}`). Ninguna de las dos funciones se usa: hoy es código muerto.
-  - **Solución:**
-    - **A)** Quitar las dos llamadas (y `EventoService.create`, que tampoco se usa).
-    - **B)** Crear `GET /perfil/me` y `DELETE /eventos/{id}` en el backend, si se van a usar con el panel de organizador.
-
-- [ ] **3.7 🟢 Dependencias mal clasificadas o sin uso**
-  - **Problema:** `shadcn` (CLI) está en `dependencies` (`frontend/package.json`). `next-themes` ya se desinstaló en 2.9 (`ui/sonner.tsx` sí se usa, en `MainLayout`, y ahora lee el `ThemeProvider`). `components/ui/pagination.tsx` dejó de usarse en 2.14 (lo sustituye `components/Paginacion.tsx`).
-  - **Solución:**
-    - **A)** `npm i -D shadcn` y borrar `components/ui/pagination.tsx`.
 
 ---
 
@@ -127,7 +95,7 @@
 
 ## 7️⃣ Rama `feature/auth-cookie` — guía para hacerlo tú
 
-- [ ] **5.20 JWT en cookie `HttpOnly` con CSRF activado** (resuelve también 4.9)
+- [ ] **5.20 JWT en cookie `HttpOnly` con CSRF activado**
   - **Problema:** `AuthService.login` guarda el JWT en `localStorage` (`authService.ts:12`, y otra vez `LoginPage.tsx:34`) y `apiService.ts:26` lo manda como `Authorization: Bearer`. Cualquier JavaScript que se ejecute en la página (un XSS, una dependencia de npm comprometida o una extensión) puede leerlo con `localStorage.getItem('token')` y usarlo desde otro equipo durante 24 h (`JwtUtils.java:18`), sin que se pueda revocar.
   - **Solución:**
     - **A)** El backend entrega el JWT en una cookie `HttpOnly` que JavaScript no puede leer y que el navegador envía solo. Como el navegador la envía también en peticiones provocadas por otras webs, se reactiva CSRF (`SecurityConfig.java:38`). Pasos abajo.
@@ -247,7 +215,7 @@ Logout ──POST /api/auth/logout──► Set-Cookie: token=; Max-Age=0
 - **Comprobar:** Network > cualquier petición > *Request Headers*: `Cookie: token=...; XSRF-TOKEN=...` y, en los `POST`/`PUT`/`DELETE`, `X-XSRF-TOKEN: ...`. Ninguna lleva `Authorization`.
 
 **8. Servicio y tipos** — `authService.ts`, `types/AuthResponse.ts`, `LoginPage.tsx:34`, `ProfileEditForm.tsx:44`
-- **Qué:** `login` deja de escribir en `localStorage` y devuelve el `usuario`. Añadir `me()` (GET `/auth/me`) y `logout()` (POST `/auth/logout`). Quitar `token` de `AuthResponse`. El compilador te señalará `response.token` en `LoginPage.tsx:34`: bórralo (así se resuelve 4.9). En `ProfileEditForm.tsx:44` basta con `setUsuario`.
+- **Qué:** `login` deja de escribir en `localStorage` y devuelve el `usuario`. Añadir `me()` (GET `/auth/me`) y `logout()` (POST `/auth/logout`). Quitar `token` de `AuthResponse`. El compilador te señalará cualquier uso que quede de `response.token`. En `ProfileEditForm.tsx:44` basta con `setUsuario`.
 - **Por qué:** si queda algún `localStorage.setItem("usuario")`, vuelve a haber dos fuentes de verdad.
 - **Comprobar:** `cd frontend; npm run build; npm run lint` sin errores, y `Get-ChildItem src -Recurse -Include *.ts,*.tsx | Select-String localStorage` solo debe encontrar el tema.
 

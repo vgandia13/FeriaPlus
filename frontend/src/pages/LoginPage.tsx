@@ -32,7 +32,6 @@ const LoginPage = () => {
 
     try {
       const response = await AuthService.login(payload);
-      localStorage.setItem("token", response.token);
       setUsuario(
         response.usuario as {
           name: string;
@@ -40,7 +39,6 @@ const LoginPage = () => {
           rol: import("@/types/Rol").Rol;
         },
       );
-      console.log("Login exitoso");
       toast("Login exitoso", {
         description: "Bienvenido a Feria+",
       });

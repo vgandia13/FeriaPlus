@@ -30,8 +30,4 @@ export const EventoService = {
     const response = await api.post<EventoDTO>('/eventos', evento);
     return response.data;
   },
-
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/eventos/${id}`);
-  },
 };

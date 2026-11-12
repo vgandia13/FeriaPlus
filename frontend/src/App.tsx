@@ -5,12 +5,14 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import EventsPage from "./pages/EventsPage";
-import EventPage from "./pages/EventPage";
 import NotFoundPage from "./pages/NotFoundPage";
-import AdminPage from "./pages/AdminPage";
 import { Rol } from "./types/Rol";
 import { AuthInitializer } from "./components/AuthInitializer";
-import DashboardPage from "./pages/DashboardPage";
+import { lazy } from "react";
+
+const EventPage = lazy(() => import("./pages/EventPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 
 function App() {
   return (
