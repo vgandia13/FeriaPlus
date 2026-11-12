@@ -12,7 +12,7 @@
 | Apartado | Rama | Puntos |
 |---|---|---|
 | Tests y CI | rama nueva (`test/unitarios` cerró 4.15 y 4.14) | 2 |
-| Limpieza y dependencias | rama nueva (`chore/limpieza-spring-boot-4` se cerró solo con 4.11) | 10 |
+| Limpieza y dependencias | `refactor/mapstruct` y siguientes (`chore/limpieza-backend` cerró 4.10, 3.6, 5.3, 5.1, 5.2, 5.16 y casi todo 5.17) | 4 |
 | Categorías y "cerca de mí" | `feature/categorias`, `feature/cerca-de-mi` | 2 |
 | Panel de organizador | `feature/panel-organizador` | 1 |
 | JWT en cookie `HttpOnly` (guía) | `feature/auth-cookie` | 1 |
@@ -31,45 +31,13 @@
 
 ## 5️⃣ Limpieza y dependencias
 
-> La rama `chore/limpieza-spring-boot-4` se cerró solo con el fallo 4.11 de `ERRORES.md`: estas mejoras van en una rama nueva.
-
-- [ ] **4.10 🟢 Código muerto en el backend**
-  - **Problema:** `UsuarioRepository.findByNombre` y `JwtUtils.getRolesFromToken` no se usan. (Lo de categorías no es código muerto sino una funcionalidad a medias: se completa en 5.23.)
-  - **Solución:**
-    - **A)** Borrarlos.
+> `chore/limpieza-backend` cerró la limpieza pequeña. Quedan 5.25 (rama `refactor/mapstruct`), 5.17 (esperar a TS 7), 5.8 y 5.5.
 
 - [ ] **5.25 🟢 MapStruct para todos los mapeos** (hacerlo antes de 5.23, para que el código nuevo ya use los mappers)
   - **Problema:** solo `Ubicacion` usa MapStruct (`B/mapper/UbicacionMapper.java`). El resto se mapea a mano con métodos privados: `EventoService.mapToDTO`/`mapToEntity`, `UsuarioService.mapToResponseDTO` (y el armado de `DashboardDTO`) y `CategoriaService.mapToDTO`/`mapToEntity`. Dos estilos distintos para lo mismo, y cada campo nuevo hay que añadirlo a mano en varios sitios.
   - **Solución:**
     - **A)** Un `@Mapper(componentModel = "spring")` por entidad (`EventoMapper`, `UsuarioMapper`, `CategoriaMapper`, `ResenaMapper`...), inyectado en el servicio. Los campos que salen de relaciones se mapean con `@Mapping(source = "categoria.id", target = "categoriaId")`; los que necesitan buscar en un repositorio (`categoriaId` → `Categoria`, `ubicacion.id` → `Ubicacion`) se ignoran en el mapper (`ignore = true`) y los sigue poniendo el servicio, que es quien lanza el 404. Nunca mapear `password` a un DTO de respuesta. Los tests de integración y de `UsuarioServiceTest`/`EventoServiceTest` deben seguir pasando sin cambios (los de servicio necesitarán el mapper real: `Mappers.getMapper(...)` o `@Spy`). Al terminar, actualizar la línea de MapStruct del README (3.6).
     - Quitar de paso `UbicacionMapper.INSTANCE`: con `componentModel = "spring"` sobra.
-
-- [ ] **3.6 🟢 El README describe mal MapStruct**
-  - **Problema:** `README.md:19` dice que MapStruct mapea entidades↔DTOs en general; solo se usa para `Ubicacion` (la línea 68 ya lo dice bien).
-  - **Solución:**
-    - **A)** Corregir la línea 19.
-
-- [ ] **5.3 🟢 `spring.jpa.open-in-view=false`**
-  - **Problema:** está activo por defecto (consultas a la BD durante la serialización, N+1 de ~4 consultas por evento). ⚠️ Desactivarlo sin más **rompe la app**: `EventoService.obtenerTodos`/`obtenerPorId` no son transaccionales y `mapToDTO` (`:77-80`, `:94`) toca relaciones LAZY.
-  - **Solución:**
-    - **A)** Primero `@Transactional(readOnly = true)` en esos métodos, luego `open-in-view=false`.
-    - **B)** Además: `@EntityGraph` o `JOIN FETCH` en `EventoRepository` para resolver el N+1.
-
-- [ ] **5.1 🟢 Filtrar `FACTOR_PASSWORD` del JWT** (Security 7)
-  - **Problema:** `B/security/JwtUtils.java:29-31` emite `"roles":"ROLE_ORGANIZADOR,FACTOR_PASSWORD"`. Hoy no tiene efecto (nadie lee el claim).
-  - **Solución:**
-    - **A)** Filtrar las authorities que empiezan por `ROLE_`.
-    - **B)** Quitar el claim `roles` (junto con `getRolesFromToken`, ver 4.10).
-
-- [ ] **5.2 🟢 Quitar `spring.jpa.database-platform`** (Hibernate 7)
-  - **Problema:** `application.properties:11`; Hibernate detecta MySQL solo y avisa `HHH90000025` al arrancar.
-  - **Solución:**
-    - **A)** Borrar la línea.
-
-- [ ] **5.16 🟢 `spring-boot-starter-web` → `spring-boot-starter-webmvc`**
-  - **Problema:** `pom.xml:39`; Boot 4 renombró el starter y el antiguo está obsoleto.
-  - **Solución:**
-    - **A)** Cambiar el `artifactId`.
 
 - [ ] **5.17 🟢 TypeScript 7 pendiente**
   - **Vulnerabilidades (2026-11-12):** `npm audit` en `frontend/` da 12 (2 bajas + 10 moderadas; eran 17 el 2026-10-31), pero son solo 2 de origen y las demás son paquetes que dependen de ellas: `minimatch` <11.0.1 (DoS con globs; la traen `eslint` 9 y 10 y `typescript-eslint` 8.72) y `deepmerge` ≤4.3.1 (*prototype poisoning*; la trae la CLI de `shadcn` 4.23, y no hay versión corregida). Afectan solo a herramientas de desarrollo; al bundle solo llega `shadcn/tailwind.css`. **No usar `npm audit fix --force`**: baja `shadcn` a 1.0 y `typescript-eslint` a 8.14 y rompe build y lint. Volver a mirarlo cuando las versiones nuevas de esos paquetes usen `minimatch` 11.
