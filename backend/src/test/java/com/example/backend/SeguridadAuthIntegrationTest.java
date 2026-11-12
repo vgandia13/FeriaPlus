@@ -317,4 +317,19 @@ class SeguridadAuthIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre").value("Editado por admin"));
     }
+
+    @Test
+    void lasCategoriasSonPublicasYVienenOrdenadas() throws Exception {
+        mockMvc.perform(get("/api/categorias"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(6))
+                .andExpect(jsonPath("$[0].nombre").value("Artesanía"));
+    }
+
+    @Test
+    void losEventosDelSeederTienenCategoria() throws Exception {
+        mockMvc.perform(get("/api/eventos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].categoriaId").isNumber());
+    }
 }
