@@ -29,9 +29,16 @@ import {
 } from "@/components/ui/select";
 import { CategoriaService } from "../services/categoriaService";
 import { CategoriaDTO } from "../types/CategoriaDTO";
+import { MapPin } from "lucide-react";
 
 // Valor del desplegable para "sin filtro": Radix Select no admite value=""
 const TODAS = "todas";
+const RADIOS_KM = ["10", "25", "50", "100"];
+
+interface Posicion {
+  lat: number;
+  lng: number;
+}
 
 const EventsPage = () => {
   const [events, setEvents] = useState<EventoDTO[]>([]);
@@ -42,13 +49,25 @@ const EventsPage = () => {
   const [loading, setLoading] = useState(false);
   const [categorias, setCategorias] = useState<CategoriaDTO[]>([]);
   const [categoria, setCategoria] = useState(TODAS);
+  const [posicion, setPosicion] = useState<Posicion | null>(null);
+  const [radioKm, setRadioKm] = useState("25");
+  const [localizando, setLocalizando] = useState(false);
 
-  const loadEvents = async (nombre: string, cat: string, p: number) => {
+  const loadEvents = async (
+    nombre: string,
+    cat: string,
+    pos: Posicion | null,
+    radio: string,
+    p: number,
+  ) => {
     setLoading(true);
     try {
       const data = await EventoService.getAll({
         nombre,
         categoriaId: cat === TODAS ? undefined : Number(cat),
+        lat: pos?.lat,
+        lng: pos?.lng,
+        radioKm: pos ? Number(radio) : undefined,
         page: p,
         size: 9,
       });
@@ -75,7 +94,13 @@ const EventsPage = () => {
     let isMounted = true;
 
     const fetchData = async () => {
-      const data = await loadEvents(debouncedSearchTerm, categoria, page);
+      const data = await loadEvents(
+        debouncedSearchTerm,
+        categoria,
+        posicion,
+        radioKm,
+        page,
+      );
       if (isMounted) {
         setEvents(data.content);
         setTotalPages(data.page.totalPages);
@@ -87,7 +112,7 @@ const EventsPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [debouncedSearchTerm, categoria, page]);
+  }, [debouncedSearchTerm, categoria, posicion, radioKm, page]);
 
   // Las categorías se cargan una vez; si fallan, la página sigue funcionando sin el filtro
   useEffect(() => {
@@ -98,6 +123,35 @@ const EventsPage = () => {
 
   const nombreCategoria = (id?: number) =>
     categorias.find((c) => c.id === id)?.nombre;
+
+  // Pide la ubicación al navegador (solo funciona en localhost o HTTPS).
+  // Si ya estaba activo, lo desactiva.
+  const toggleCercaDeMi = () => {
+    if (posicion) {
+      setPosicion(null);
+      setPage(0);
+      return;
+    }
+    if (!navigator.geolocation) {
+      toast.error("Tu navegador no permite obtener la ubicación.");
+      return;
+    }
+    setLocalizando(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setPosicion({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setPage(0);
+        setLocalizando(false);
+      },
+      () => {
+        toast.error(
+          "No se pudo obtener tu ubicación. Revisa el permiso del navegador.",
+        );
+        setLocalizando(false);
+      },
+      { timeout: 10000 },
+    );
+  };
 
   const handleSearch = () => {
     setDebouncedSearchTerm(searchTerm);
@@ -119,25 +173,68 @@ const EventsPage = () => {
             </Button>
           </InputGroupButton>
         </InputGroup>
-        <Select
-          value={categoria}
-          onValueChange={(valor) => {
-            setCategoria(valor);
-            setPage(0);
-          }}
-        >
-          <SelectTrigger className="mt-3 w-full sm:w-60" aria-label="Filtrar por categoría">
-            <SelectValue placeholder="Categoría" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={TODAS}>Todas las categorías</SelectItem>
-            {categorias.map((c) => (
-              <SelectItem key={c.id} value={String(c.id)}>
-                {c.nombre}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <Select
+            value={categoria}
+            onValueChange={(valor) => {
+              setCategoria(valor);
+              setPage(0);
+            }}
+          >
+            <SelectTrigger
+              className="w-full sm:w-60"
+              aria-label="Filtrar por categoría"
+            >
+              <SelectValue placeholder="Categoría" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={TODAS}>Todas las categorías</SelectItem>
+              {categorias.map((c) => (
+                <SelectItem key={c.id} value={String(c.id)}>
+                  {c.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            variant={posicion ? "default" : "outline"}
+            aria-pressed={posicion !== null}
+            disabled={localizando}
+            onClick={toggleCercaDeMi}
+          >
+            {localizando ? (
+              "Localizando…"
+            ) : posicion ? (
+              "Quitar «Cerca de mí»"
+            ) : (
+              <>
+                <MapPin className="size-4" aria-hidden="true" />
+                Cerca de mí
+              </>
+            )}
+          </Button>
+          {posicion && (
+            <Select
+              value={radioKm}
+              onValueChange={(valor) => {
+                setRadioKm(valor);
+                setPage(0);
+              }}
+            >
+              <SelectTrigger className="w-32" aria-label="Distancia máxima">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {RADIOS_KM.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r} km
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </nav>
       <h1 className="text-3xl font-bold mb-8 text-center">
         Eventos Disponibles

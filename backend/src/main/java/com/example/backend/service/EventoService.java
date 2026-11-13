@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.DTO.EventoDTO;
 import com.example.backend.exception.AccesoDenegadoException;
+import com.example.backend.exception.BusquedaInvalidaException;
 import com.example.backend.exception.CategoriaNoEncontradaException;
 import com.example.backend.exception.EventoNoEncontradoException;
 import com.example.backend.exception.OrdenInvalidoException;
@@ -42,15 +43,18 @@ public class EventoService {
     private static final Set<String> CAMPOS_ORDEN = Set.of("nombre", "fecha", "id");
 
     @Transactional(readOnly = true)
-    public Page<EventoDTO> obtenerTodos(String nombre, Long categoriaId, Pageable pageable) {
+    public Page<EventoDTO> obtenerTodos(String nombre, Long categoriaId,
+        Double lat, Double lng, Double radioKm, Pageable pageable) {
         for (Sort.Order orden : pageable.getSort()) {
             if (!CAMPOS_ORDEN.contains(orden.getProperty())) {
                 throw new OrdenInvalidoException("Campo de ordenacion inválido");
             }
         }
+        validarCercania(lat, lng, radioKm);
         Specification<Evento> filtros = Specification.allOf(
                 EventoSpecs.nombreContiene(nombre),
-                EventoSpecs.deCategoria(categoriaId));
+                EventoSpecs.deCategoria(categoriaId),
+                EventoSpecs.cercaDe(lat, lng, radioKm));
         Page<Evento> eventos = eventoRepository.findAll(filtros, pageable);
         return eventos.map(eventoMapper::toDTO);
     }
@@ -123,4 +127,23 @@ public class EventoService {
         return categoriaRepository.findById(categoriaId)
                 .orElseThrow(() -> new CategoriaNoEncontradaException("Categoría no encontrada"));
     }
+
+    private static final double RADIO_MAXIMO_KM = 500;
+
+    // Los tres parámetros van juntos: o vienen todos o ninguno
+    private void validarCercania(Double lat, Double lng, Double radioKm) {
+        if (lat == null && lng == null && radioKm == null) {
+            return;
+        }
+        if (lat == null || lng == null || radioKm == null) {
+            throw new BusquedaInvalidaException("Para buscar cerca hacen falta lat, lng y radioKm");
+        }
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            throw new BusquedaInvalidaException("Coordenadas fuera de rango");
+        }
+        if (radioKm <= 0 || radioKm > RADIO_MAXIMO_KM) {
+            throw new BusquedaInvalidaException("El radio debe estar entre 0 y " + (int) RADIO_MAXIMO_KM + " km");
+        }
+    }
+
 }

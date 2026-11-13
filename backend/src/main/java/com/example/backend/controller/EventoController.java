@@ -33,8 +33,11 @@ public class EventoController {
     public ResponseEntity<Page<EventoDTO>> obtenerTodos(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) Long categoriaId,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lng,
+            @RequestParam(required = false) Double radioKm,
             Pageable pageable) {
-        return ResponseEntity.ok(eventoService.obtenerTodos(nombre, categoriaId, pageable));
+        return ResponseEntity.ok(eventoService.obtenerTodos(nombre, categoriaId, lat, lng, radioKm, pageable));
     }
 
     @GetMapping("/{id}")

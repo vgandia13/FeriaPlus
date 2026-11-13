@@ -388,4 +388,52 @@ class SeguridadAuthIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.categoriaId").value(cultura));
     }
+
+    // Puerta del Sol (Madrid). En el seeder hay 2 eventos en Madrid y el resto
+    // en Valencia (~300 km), Barcelona (~500 km) y Sevilla (~390 km)
+    @Test
+    void cercaDeMadridSoloDevuelveLosDeMadrid() throws Exception {
+        mockMvc.perform(get("/api/eventos")
+                        .param("lat", "40.4168").param("lng", "-3.7038").param("radioKm", "50"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements").value(2));
+    }
+
+    @Test
+    void elPropioPuntoDelEventoEntraEnElRadio() throws Exception {
+        // Coordenadas exactas de "Recinto Ferial" (Sevilla): distancia 0
+        mockMvc.perform(get("/api/eventos")
+                        .param("lat", "37.382").param("lng", "-5.973").param("radioKm", "1"))
+                .andExpect(jsonPath("$.page.totalElements").value(1));
+    }
+
+    @Test
+    void cercaniaSeCombinaConCategoria() throws Exception {
+        // Valencia, 20 km: 5 eventos; de ellos, Tecnología solo "Tech & Startup Hub" y "Eco-Mobility Expo"
+        mockMvc.perform(get("/api/eventos")
+                        .param("lat", "39.4699").param("lng", "-0.3763").param("radioKm", "20")
+                        .param("categoriaId", idCategoria("Tecnología").toString()))
+                .andExpect(jsonPath("$.page.totalElements").value(2));
+    }
+
+    @Test
+    void cercaniaIncompletaDa400() throws Exception {
+        mockMvc.perform(get("/api/eventos").param("lat", "40.4").param("lng", "-3.7"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void latitudFueraDeRangoDa400() throws Exception {
+        mockMvc.perform(get("/api/eventos")
+                        .param("lat", "100").param("lng", "-3.7").param("radioKm", "10"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void radioDemasiadoGrandeDa400() throws Exception {
+        mockMvc.perform(get("/api/eventos")
+                        .param("lat", "40.4").param("lng", "-3.7").param("radioKm", "5000"))
+                .andExpect(status().isBadRequest());
+    }
+
 }
