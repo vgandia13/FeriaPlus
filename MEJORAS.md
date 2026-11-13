@@ -13,7 +13,6 @@
 |---|---|---|
 | Tests y CI | rama nueva (`test/unitarios` cerró 4.15 y 4.14) | 2 |
 | Limpieza y dependencias | rama nueva (`chore/limpieza-backend` y `refactor/mapstruct` cerraron el resto) | 4 |
-| "Cerca de mí" | `feature/cerca-de-mi` (`feature/categorias` cerró 5.23) | 1 |
 | Panel de organizador | `feature/panel-organizador` | 1 |
 | JWT en cookie `HttpOnly` (guía) | `feature/auth-cookie` | 1 |
 | Login con Google (guía, requiere 5.20) | `feature/google-login` | 1 |
@@ -54,17 +53,6 @@
   - **Problema:** `B/exception/GlobalExceptionHandler.java` devuelve `Map<String,Object>` con un formato propio.
   - **Solución:**
     - **A)** Devolver `ProblemDetail` (`{type,title,status,detail}`) y que el frontend lea `detail` (4.4 se resolvió dejando el mensaje de cada página; con `detail` se podrían mostrar mensajes más concretos del backend).
-
----
-
-## ➕ Funcionalidad nueva: "cerca de mí"
-
-> 5.23 (categorías) ya está hecho: la búsqueda usa `Specification` (`B/repository/EventoSpecs.java`), así que 5.24 solo añade un filtro más ahí. Los mappers de `B/mapper/` (5.25) también están hechos.
-
-- [ ] **5.24 Búsqueda "cerca de mí"** (rama `feature/cerca-de-mi`)
-  - **Problema:** `Ubicacion` ya tiene `latitud`/`longitud`, pero no se puede buscar por distancia.
-  - **Solución:**
-    - **A)** Parámetros `lat`, `lng` y `radioKm` en `GET /api/eventos` (validados: rangos de coordenadas y radio máximo) y una `Specification` con la fórmula de Haversine (`SIN`/`COS`/`ACOS`, que existen en MySQL y en H2; `ST_Distance_Sphere` no está en H2). En el frontend, botón "Cerca de mí" con `navigator.geolocation` (solo funciona en `localhost` o HTTPS), selector de radio (10/25/50/100 km) y aviso si se deniega el permiso. La posición no se guarda. Tests: un punto en Madrid con 50 km devuelve solo los eventos de Madrid.
 
 ---
 

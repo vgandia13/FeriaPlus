@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { CategoriaService } from "../services/categoriaService";
 import { CategoriaDTO } from "../types/CategoriaDTO";
+import { MapPin } from "lucide-react";
 
 // Valor del desplegable para "sin filtro": Radix Select no admite value=""
 const TODAS = "todas";
@@ -202,11 +203,16 @@ const EventsPage = () => {
             disabled={localizando}
             onClick={toggleCercaDeMi}
           >
-            {localizando
-              ? "Localizando…"
-              : posicion
-                ? "Quitar «Cerca de mí»"
-                : "📍 Cerca de mí"}
+            {localizando ? (
+              "Localizando…"
+            ) : posicion ? (
+              "Quitar «Cerca de mí»"
+            ) : (
+              <>
+                <MapPin className="size-4" aria-hidden="true" />
+                Cerca de mí
+              </>
+            )}
           </Button>
           {posicion && (
             <Select
