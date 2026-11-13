@@ -6,6 +6,9 @@ export const EventoService = {
   getAll: async (params?: {
     nombre?: string;
     categoriaId?: number;
+    lat?: number;
+    lng?: number;
+    radioKm?: number;
     page?: number;
     size?: number;
   }): Promise<{
