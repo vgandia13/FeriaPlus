@@ -129,6 +129,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(BusquedaInvalidaException.class)
+    public ResponseEntity<Object> handleBusquedaInvalidaException(BusquedaInvalidaException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(OrdenInvalidoException.class)
     public ResponseEntity<Object> handleOrdenInvalidoException(OrdenInvalidoException ex){
         Map<String, Object> body = new HashMap<>();
