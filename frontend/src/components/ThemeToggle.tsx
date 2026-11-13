@@ -18,6 +18,7 @@ export function ThemeToggle() {
         aria-label="Modo oscuro"
         checked={isDark}
         size="default"
+        className="border-white/70 data-checked:bg-white/15 data-unchecked:bg-white/15 dark:data-unchecked:bg-white/15"
         onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
       />
 
