@@ -30,13 +30,7 @@
 
 ## 5️⃣ Limpieza y dependencias
 
-> `chore/limpieza-backend` cerró la limpieza pequeña y `refactor/mapstruct` cerró 5.25. Quedan 5.26, 5.17 (esperar a TS 7), 5.8 y 5.5.
-
-- [ ] **5.26 🟢 Consultas N+1 al listar eventos**
-  - **Problema:** `GET /api/eventos` hace 1 consulta para la página y luego varias más **por cada evento** al leer sus relaciones en `EventoService.mapToDTO` (`ubicacion`, `resenas`, la `ubicacion` de cada reseña...). Con 9 eventos por página son decenas de consultas. `open-in-view=false` (5.3, ya hecho) evitó los errores, pero no reduce el número de consultas. Se ve activando `spring.jpa.show-sql=true` en local.
-  - **Solución:**
-    - **A)** `@EntityGraph(attributePaths = {"ubicacion", "categoria", "organizador"})` en los métodos de `EventoRepository` que devuelven `Page` (las relaciones simples se traen con un `JOIN` en la misma consulta). Para las colecciones (`resenas`) no usar `JOIN FETCH` con paginación (Hibernate pagina en memoria y avisa `HHH90003004`); en su lugar `spring.jpa.properties.hibernate.default_batch_fetch_size=20`, que carga las reseñas de toda la página en una consulta. La búsqueda ya usa `Specification` (5.23): `findAll(spec, pageable)` también admite `@EntityGraph` si se sobrescribe en `EventoRepository`.
-    - Comprobar contando consultas antes y después con `show-sql` (o un test con `Statistics` de Hibernate).
+> `chore/limpieza-backend` cerró la limpieza pequeña y `refactor/mapstruct` cerró 5.25 y `perf/n-mas-1-eventos` cerró 5.26 (listar eventos: de 26 consultas a 2). Quedan 5.17 (esperar a TS 7), 5.8 y 5.5.
 
 - [ ] **5.17 🟢 TypeScript 7 pendiente**
   - **Vulnerabilidades (2026-11-12):** `npm audit` en `frontend/` da 12 (2 bajas + 10 moderadas; eran 17 el 2026-10-31), pero son solo 2 de origen y las demás son paquetes que dependen de ellas: `minimatch` <11.0.1 (DoS con globs; la traen `eslint` 9 y 10 y `typescript-eslint` 8.72) y `deepmerge` ≤4.3.1 (*prototype poisoning*; la trae la CLI de `shadcn` 4.23, y no hay versión corregida). Afectan solo a herramientas de desarrollo; al bundle solo llega `shadcn/tailwind.css`. **No usar `npm audit fix --force`**: baja `shadcn` a 1.0 y `typescript-eslint` a 8.14 y rompe build y lint. Volver a mirarlo cuando las versiones nuevas de esos paquetes usen `minimatch` 11.
