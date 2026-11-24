@@ -18,6 +18,8 @@ public interface EventoRepository extends JpaRepository<Evento, Long>, JpaSpecif
 
     boolean existsByAsistentes_Id(Long usuarioId);
 
+    // resenas no: JOIN FETCH de colección + paginación pagina en memoria; las carga
+    // default_batch_fetch_size
     @Override
     @EntityGraph(attributePaths = { "ubicacion", "categoria", "organizador" })
     Page<Evento> findAll(Specification<Evento> spec, Pageable pageable);
